@@ -14,6 +14,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 local stateFolder = playerGui:WaitForChild("ClientState")
 local dataChangedEvent = stateFolder:WaitForChild("DataChanged")
+local proximityEvent = stateFolder:WaitForChild("PlotProximityChanged")
 local Remotes = stateFolder:WaitForChild("RemotesRef").Value
 
 local SellWorker = Remotes:WaitForChild("SellWorker")
@@ -31,6 +32,7 @@ frame.Position = UDim2.new(1, -240, 0.5, -200)
 frame.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
 frame.BackgroundTransparency = 0.05
 frame.BorderSizePixel = 0
+frame.Visible = false
 frame.Parent = mainUI
 
 local corner = Instance.new("UICorner")
@@ -210,4 +212,8 @@ end
 -- Update when data changes
 dataChangedEvent.Event:Connect(function(data)
 	renderWorkers(data)
+end)
+
+proximityEvent.Event:Connect(function(isNear)
+	frame.Visible = isNear
 end)

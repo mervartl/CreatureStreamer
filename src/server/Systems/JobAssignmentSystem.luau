@@ -5,6 +5,7 @@
 ]]
 
 local DataStoreManager = require(script.Parent.DataStoreManager)
+local PlotSystem = require(script.Parent.PlotSystem)
 
 local JobAssignmentSystem = {}
 
@@ -48,6 +49,7 @@ function JobAssignmentSystem.assign(player: Player, eggId: string)
 		id = egg.id,
 	}
 	table.insert(data.workers, worker)
+	PlotSystem.spawnWorker(player, worker)
 
 	return true, worker
 end

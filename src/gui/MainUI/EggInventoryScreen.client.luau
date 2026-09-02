@@ -14,6 +14,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 local stateFolder = playerGui:WaitForChild("ClientState")
 local dataChangedEvent = stateFolder:WaitForChild("DataChanged")
+local proximityEvent = stateFolder:WaitForChild("PlotProximityChanged")
 local Remotes = stateFolder:WaitForChild("RemotesRef").Value
 
 local MergeEggs = Remotes:WaitForChild("MergeEggs")
@@ -29,10 +30,11 @@ local mainUI = playerGui:WaitForChild("MainUI")
 local frame = Instance.new("Frame")
 frame.Name = "EggInventoryFrame"
 frame.Size = UDim2.new(0, 360, 0, 420)
-frame.Position = UDim2.new(0.5, -180, 0.5, -210)
+frame.Position = UDim2.new(0, 20, 1, -440)
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 frame.BackgroundTransparency = 0.05
 frame.BorderSizePixel = 0
+frame.Visible = false
 frame.Parent = mainUI
 
 local corner = Instance.new("UICorner")
@@ -217,6 +219,8 @@ local function renderEggs(data)
 		return
 	end
 
+	title.Text = string.format("🥚 Egg Inventory (%d/%d)", #data.eggs, data.eggSlotsCap)
+
 	-- Sort eggs by tier (descending) for better visibility
 	local sorted = {}
 	for _, egg in ipairs(data.eggs) do
@@ -233,7 +237,7 @@ local function renderEggs(data)
 		btn.Name = "Egg_" .. egg.id
 		btn.LayoutOrder = i
 		btn.BackgroundColor3 = tierInfo.color
-		btn.Text = "T" .. egg.tier .. "\n" .. tierInfo.rarityName:sub(1, 3)
+		btn.Text = tierInfo.rarityName .. "\nL" .. tierInfo.level
 		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 		btn.TextSize = 11
 		btn.Font = Enum.Font.GothamBold
@@ -365,4 +369,12 @@ end)
 -- Update when data changes
 dataChangedEvent.Event:Connect(function(data)
 	renderEggs(data)
+end)
+
+proximityEvent.Event:Connect(function(isNear)
+	frame.Visible = isNear
+	if not isNear then
+		clearSelection()
+		updateButtonStates()
+	end
 end)

@@ -6,7 +6,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+local Config = require(ReplicatedStorage.Shared.Config)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -30,6 +30,7 @@ frame.Position = UDim2.new(0, 20, 0, 20)
 frame.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
 frame.BackgroundTransparency = 0.1
 frame.BorderSizePixel = 0
+frame.ClipsDescendants = true
 frame.Parent = mainUI
 
 local corner = Instance.new("UICorner")
@@ -58,25 +59,7 @@ toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.Parent = frame
 Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 4)
 
-local isCollapsed = false
-toggleBtn.MouseButton1Click:Connect(function()
-	isCollapsed = not isCollapsed
-	if isCollapsed then
-		frame.Size = UDim2.new(0, 220, 0, 40)
-		toggleBtn.Text = "+"
-		timerLabel.Visible = false
-		for _, mf in ipairs(milestoneFrames) do
-			mf.row.Visible = false
-		end
-	else
-		frame.Size = UDim2.new(0, 220, 0, 160)
-		toggleBtn.Text = "-"
-		timerLabel.Visible = true
-		for _, mf in ipairs(milestoneFrames) do
-			mf.row.Visible = true
-		end
-	end
-end)
+-- Event connection moved down to avoid variable shadowing
 
 local timerLabel = Instance.new("TextLabel")
 timerLabel.Name = "TimerLabel"
@@ -141,6 +124,26 @@ for i, milestone in ipairs(Config.SESSION_MILESTONES) do
 
 	milestoneFrames[i] = { row = row, btn = claimBtn }
 end
+
+local isCollapsed = false
+toggleBtn.MouseButton1Click:Connect(function()
+	isCollapsed = not isCollapsed
+	if isCollapsed then
+		frame.Size = UDim2.new(0, 220, 0, 40)
+		toggleBtn.Text = "+"
+		timerLabel.Visible = false
+		for _, mf in ipairs(milestoneFrames) do
+			mf.row.Visible = false
+		end
+	else
+		frame.Size = UDim2.new(0, 220, 0, 160)
+		toggleBtn.Text = "-"
+		timerLabel.Visible = true
+		for _, mf in ipairs(milestoneFrames) do
+			mf.row.Visible = true
+		end
+	end
+end)
 
 --------------------------------------------------------------------------------
 -- Update timer and milestone states

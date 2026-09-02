@@ -10,7 +10,7 @@ local Config = {}
 -- HATCHING
 --------------------------------------------------------------------------------
 -- Cost in currency to hatch one egg
-Config.HATCH_COST = 100
+Config.HATCH_COST = 200
 
 -- Weighted probability table for the starting tier of a freshly hatched egg.
 -- Keys are tier indices; values are base (un-luck-adjusted) weights.
@@ -51,7 +51,7 @@ Config.RARITY_NAMES = { "Common", "Rare", "Epic", "Legendary" }
 --------------------------------------------------------------------------------
 Config.EGG_SLOTS_INITIAL = 10
 Config.EGG_SLOTS_MAX = 25
-Config.EGG_SLOT_BASE_COST = 200
+Config.EGG_SLOT_BASE_COST = 400
 Config.EGG_SLOT_COST_SCALE = 1.5 -- each additional slot costs BASE * SCALE^n
 
 --------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ Config.EGG_SLOT_COST_SCALE = 1.5 -- each additional slot costs BASE * SCALE^n
 --------------------------------------------------------------------------------
 Config.JOB_SLOTS_INITIAL = 2
 Config.JOB_SLOTS_MAX = 6
-Config.JOB_SLOT_BASE_COST = 500
+Config.JOB_SLOT_BASE_COST = 1000
 Config.JOB_SLOT_COST_SCALE = 2.0
 
 --------------------------------------------------------------------------------
@@ -73,16 +73,16 @@ Config.INCOME_TICK_SECONDS = 60
 Config.INCOME_PER_TIER = {}
 for tier = 0, Config.TIER_MAX do
 	local cumulativeCost = Config.HATCH_COST * (2 ^ tier)
-	local targetPaybackMinutes = 10
+	local targetPaybackMinutes = 20
 	
 	if tier <= 4 then
-		targetPaybackMinutes = 5 + (tier / 4) * 5
+		targetPaybackMinutes = 10 + (tier / 4) * 10
 	elseif tier <= 9 then
-		targetPaybackMinutes = 15 + ((tier - 5) / 4) * 10
+		targetPaybackMinutes = 40 + ((tier - 5) / 4) * 20
 	elseif tier <= 14 then
-		targetPaybackMinutes = 30 + ((tier - 10) / 4) * 15
+		targetPaybackMinutes = 80 + ((tier - 10) / 4) * 40
 	else
-		targetPaybackMinutes = 45 + (math.min(tier - 15, 4) / 4) * 15
+		targetPaybackMinutes = 150 + (math.min(tier - 15, 4) / 4) * 50
 	end
 	
 	local rawIncome = cumulativeCost / targetPaybackMinutes
@@ -104,57 +104,57 @@ end
 --------------------------------------------------------------------------------
 -- Direct egg sell (no hatch). Intentionally low — selling is a release valve.
 Config.SELL_EGG_VALUE_PER_TIER = {
-	[0] = 10,
-	[1] = 15,
-	[2] = 25,
-	[3] = 40,
-	[4] = 60,
-	[5] = 90,
-	[6] = 130,
-	[7] = 180,
-	[8] = 250,
-	[9] = 350,
-	[10] = 500,
-	[11] = 700,
-	[12] = 1000,
-	[13] = 1400,
-	[14] = 2000,
-	[15] = 3000,
-	[16] = 4500,
-	[17] = 6500,
-	[18] = 9000,
-	[19] = 12000,
+	[0] = 30,
+	[1] = 60,
+	[2] = 120,
+	[3] = 240,
+	[4] = 475,
+	[5] = 950,
+	[6] = 1900,
+	[7] = 3800,
+	[8] = 7500,
+	[9] = 15000,
+	[10] = 30000,
+	[11] = 60000,
+	[12] = 120000,
+	[13] = 240000,
+	[14] = 480000,
+	[15] = 960000,
+	[16] = 1900000,
+	[17] = 3800000,
+	[18] = 7500000,
+	[19] = 15000000,
 }
 
 -- Worker sell value — noticeably lower than cumulative egg investment to reach
 -- that tier. This is a liquidity escape hatch, not a competitive strategy.
 Config.SELL_WORKER_VALUE_PER_TIER = {
-	[0] = 5,
-	[1] = 8,
-	[2] = 12,
-	[3] = 20,
-	[4] = 30,
-	[5] = 45,
-	[6] = 65,
-	[7] = 90,
-	[8] = 125,
-	[9] = 175,
-	[10] = 250,
-	[11] = 350,
-	[12] = 500,
-	[13] = 700,
-	[14] = 1000,
-	[15] = 1500,
-	[16] = 2250,
-	[17] = 3250,
-	[18] = 4500,
-	[19] = 6000,
+	[0] = 15,
+	[1] = 30,
+	[2] = 60,
+	[3] = 120,
+	[4] = 240,
+	[5] = 500,
+	[6] = 1000,
+	[7] = 2000,
+	[8] = 4000,
+	[9] = 8000,
+	[10] = 16000,
+	[11] = 32000,
+	[12] = 64000,
+	[13] = 125000,
+	[14] = 250000,
+	[15] = 500000,
+	[16] = 1000000,
+	[17] = 2000000,
+	[18] = 4000000,
+	[19] = 8000000,
 }
 
 --------------------------------------------------------------------------------
 -- CURRENCY
 --------------------------------------------------------------------------------
-Config.STARTING_CURRENCY = 500
+Config.STARTING_CURRENCY = 600
 Config.CURRENCY_NAME = "Viewers"
 
 --------------------------------------------------------------------------------
@@ -170,14 +170,14 @@ Config.BASE_LUCK = 1
 Config.SESSION_MILESTONES = {
 	{
 		time = 900, -- 15 minutes in seconds
-		currency = 200,
+		currency = 1000,
 		luckBoost = 0.1, -- temporary +10% luck for the session
 		freeEgg = false,
 		freeEggMinTier = 0,
 	},
 	{
 		time = 1800, -- 30 minutes in seconds
-		currency = 500,
+		currency = 2500,
 		luckBoost = 0,
 		freeEgg = true,
 		freeEggMinTier = 2, -- guaranteed at least Common L3
@@ -188,13 +188,13 @@ Config.SESSION_MILESTONES = {
 -- DAILY REWARDS (day-streak system)
 --------------------------------------------------------------------------------
 Config.DAILY_REWARDS = {
-	{ day = 1, currency = 100 },
-	{ day = 2, currency = 150 },
-	{ day = 3, currency = 250 },
-	{ day = 4, currency = 400 },
-	{ day = 5, currency = 600 },
-	{ day = 6, currency = 900 },
-	{ day = 7, currency = 1500 },
+	{ day = 1, currency = 2000 },
+	{ day = 2, currency = 3000 },
+	{ day = 3, currency = 5000 },
+	{ day = 4, currency = 7500 },
+	{ day = 5, currency = 11000 },
+	{ day = 6, currency = 16000 },
+	{ day = 7, currency = 25000 },
 }
 
 -- Whether a broken streak fully resets (true) or soft-resets to day 1 (false).
@@ -218,8 +218,18 @@ Config.INSTANT_CLAIM_PRODUCT_ID = 3710595360
 -- DATASTORE
 --------------------------------------------------------------------------------
 Config.DATASTORE_NAME = "PlayerData"
-Config.DATASTORE_KEY_PREFIX = "v1_"
+Config.DATASTORE_KEY_PREFIX = "v2_"
 Config.AUTOSAVE_INTERVAL = 300 -- seconds between autosaves (5 minutes)
 Config.DATASTORE_MAX_RETRIES = 5
+
+--------------------------------------------------------------------------------
+-- PLOTS & UI PROXIMITY
+--------------------------------------------------------------------------------
+Config.MAX_PLOTS = 20
+Config.PLOT_SPACING = 150
+Config.WORKER_BASE_SIZE = Vector3.new(1.6, 2.5, 1.6)
+Config.WORKER_SIZE_PER_TIER = 0.2
+Config.WORKER_VISUAL_SCALE = 0.7 -- Global visual scale adjustment
+Config.PROXIMITY_RADIUS = 25 -- Distance from plot center to show UI panels
 
 return Config

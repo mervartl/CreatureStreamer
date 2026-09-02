@@ -5,6 +5,7 @@
 
 local Config = require(game.ReplicatedStorage.Shared.Config)
 local DataStoreManager = require(script.Parent.DataStoreManager)
+local PlotSystem = require(script.Parent.PlotSystem)
 
 local CurrencySystem = {}
 
@@ -58,6 +59,8 @@ function CurrencySystem.sellWorker(player: Player, workerId: string)
 	local value = Config.SELL_WORKER_VALUE_PER_TIER[worker.tier] or 0
 	table.remove(data.workers, idx)
 	data.currency = data.currency + value
+	
+	PlotSystem.despawnWorker(player, workerId)
 
 	return true, value
 end

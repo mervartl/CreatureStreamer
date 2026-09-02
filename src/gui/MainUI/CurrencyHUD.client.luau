@@ -22,7 +22,7 @@ local mainUI = playerGui:WaitForChild("MainUI")
 
 local hud = Instance.new("Frame")
 hud.Name = "CurrencyHUD"
-hud.Size = UDim2.new(0, 300, 0, 40)
+hud.Size = UDim2.new(0, 420, 0, 40)
 hud.Position = UDim2.new(0.5, -150, 0, 8)
 hud.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 hud.BackgroundTransparency = 0.15
@@ -57,7 +57,7 @@ currencyLabel.Parent = hud
 local slotsInfo = Instance.new("TextLabel")
 slotsInfo.Name = "SlotsInfo"
 slotsInfo.Size = UDim2.new(0, 150, 1, 0)
-slotsInfo.Position = UDim2.new(1, -158, 0, 0)
+slotsInfo.Position = UDim2.new(1, -260, 0, 0)
 slotsInfo.BackgroundTransparency = 1
 slotsInfo.Text = "🥚 0/10 | 📺 0/2"
 slotsInfo.TextColor3 = Color3.fromRGB(180, 180, 200)
@@ -66,6 +66,28 @@ slotsInfo.Font = Enum.Font.Gotham
 slotsInfo.TextXAlignment = Enum.TextXAlignment.Right
 slotsInfo.ZIndex = 21
 slotsInfo.Parent = hud
+
+local oddsButton = Instance.new("TextButton")
+oddsButton.Name = "OddsButton"
+oddsButton.Size = UDim2.new(0, 90, 0, 26)
+oddsButton.Position = UDim2.new(1, -98, 0.5, -13)
+oddsButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+oddsButton.Text = "📊 View Odds"
+oddsButton.TextColor3 = Color3.fromRGB(160, 180, 255)
+oddsButton.TextSize = 11
+oddsButton.Font = Enum.Font.Gotham
+oddsButton.AutoButtonColor = true
+oddsButton.ZIndex = 22
+oddsButton.Parent = hud
+
+Instance.new("UICorner", oddsButton).CornerRadius = UDim.new(0, 4)
+
+oddsButton.MouseButton1Click:Connect(function()
+	local oddsPopup = mainUI:FindFirstChild("OddsPopupFrame")
+	if oddsPopup then
+		oddsPopup.Visible = not oddsPopup.Visible
+	end
+end)
 
 --------------------------------------------------------------------------------
 -- Update on data change

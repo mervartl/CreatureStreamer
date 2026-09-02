@@ -30,6 +30,7 @@ local SlotSystem = require(script.Systems.SlotSystem)
 local SessionRewardSystem = require(script.Systems.SessionRewardSystem)
 local DailyRewardSystem = require(script.Systems.DailyRewardSystem)
 local MarketplaceHandler = require(script.Systems.MarketplaceHandler)
+local PlotSystem = require(script.Systems.PlotSystem)
 
 local Config = require(ReplicatedStorage.Shared.Config)
 
@@ -122,6 +123,10 @@ Players.PlayerAdded:Connect(function(player)
 	-- Check gamepass ownership
 	LuckSystem.checkLuckPass(player)
 
+	-- Assign Plot and render existing workers
+	PlotSystem.assignPlot(player)
+	PlotSystem.renderAllWorkers(player)
+
 	-- Send initial state to client
 	syncToClient(player)
 
@@ -136,6 +141,7 @@ Players.PlayerAdded:Connect(function(player)
 end)
 
 Players.PlayerRemoving:Connect(function(player)
+	PlotSystem.removePlot(player)
 	DataStoreManager.savePlayerData(player)
 	DataStoreManager.clearCache(player)
 	LuckSystem.clearCache(player)
