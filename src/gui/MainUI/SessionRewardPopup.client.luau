@@ -18,6 +18,7 @@ local Remotes = stateFolder:WaitForChild("RemotesRef").Value
 local ClaimSessionReward = Remotes:WaitForChild("ClaimSessionReward")
 
 local mainUI = playerGui:WaitForChild("MainUI")
+local ScreenManager = require(script.Parent:WaitForChild("ScreenManager"))
 
 --------------------------------------------------------------------------------
 -- Build UI
@@ -25,13 +26,21 @@ local mainUI = playerGui:WaitForChild("MainUI")
 
 local frame = Instance.new("Frame")
 frame.Name = "SessionRewardFrame"
-frame.Size = UDim2.new(0, 220, 0, 160)
-frame.Position = UDim2.new(0, 20, 0, 20)
+frame.Size = UDim2.new(0, 250, 0, 46)  -- start collapsed
+frame.Position = UDim2.new(0, 16, 0, 62)  -- below CurrencyHUD
 frame.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
 frame.BackgroundTransparency = 0.1
 frame.BorderSizePixel = 0
 frame.ClipsDescendants = true
 frame.Parent = mainUI
+
+local sizeConstraint = Instance.new("UISizeConstraint")
+sizeConstraint.MaxSize = Vector2.new(280, 440)
+sizeConstraint.Parent = frame
+
+local uiScale = Instance.new("UIScale")
+uiScale.Scale = 1.0
+uiScale.Parent = frame
 
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 10)
@@ -43,7 +52,7 @@ title.Position = UDim2.new(0, 0, 0, 6)
 title.BackgroundTransparency = 1
 title.Text = "⏰ Session Rewards"
 title.TextColor3 = Color3.fromRGB(200, 180, 255)
-title.TextSize = 15
+title.TextSize = 17
 title.Font = Enum.Font.GothamBold
 title.Parent = frame
 
@@ -52,9 +61,9 @@ toggleBtn.Name = "ToggleBtn"
 toggleBtn.Size = UDim2.new(0, 24, 0, 24)
 toggleBtn.Position = UDim2.new(1, -32, 0, 8)
 toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 45, 55)
-toggleBtn.Text = "-"
+toggleBtn.Text = "+"  -- collapsed by default
 toggleBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-toggleBtn.TextSize = 14
+toggleBtn.TextSize = 16
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.Parent = frame
 Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 4)
@@ -68,7 +77,7 @@ timerLabel.Position = UDim2.new(0, 10, 0, 34)
 timerLabel.BackgroundTransparency = 1
 timerLabel.Text = "Time: 0:00"
 timerLabel.TextColor3 = Color3.fromRGB(180, 180, 200)
-timerLabel.TextSize = 13
+timerLabel.TextSize = 15
 timerLabel.Font = Enum.Font.Gotham
 timerLabel.TextXAlignment = Enum.TextXAlignment.Left
 timerLabel.Parent = frame
@@ -125,18 +134,24 @@ for i, milestone in ipairs(Config.SESSION_MILESTONES) do
 	milestoneFrames[i] = { row = row, btn = claimBtn }
 end
 
-local isCollapsed = false
+-- Start collapsed by default so it doesn't cover the egg inventory panel
+local isCollapsed = true
+timerLabel.Visible = false
+for _, mf in ipairs(milestoneFrames) do
+	mf.row.Visible = false
+end
+
 toggleBtn.MouseButton1Click:Connect(function()
 	isCollapsed = not isCollapsed
 	if isCollapsed then
-		frame.Size = UDim2.new(0, 220, 0, 40)
+		frame.Size = UDim2.new(0, 250, 0, 46)
 		toggleBtn.Text = "+"
 		timerLabel.Visible = false
 		for _, mf in ipairs(milestoneFrames) do
 			mf.row.Visible = false
 		end
 	else
-		frame.Size = UDim2.new(0, 220, 0, 160)
+		frame.Size = UDim2.new(0, 250, 0, 160)
 		toggleBtn.Text = "-"
 		timerLabel.Visible = true
 		for _, mf in ipairs(milestoneFrames) do
@@ -192,3 +207,28 @@ task.spawn(function()
 		end
 	end
 end)
+
+--------------------------------------------------------------------------------
+-- Responsive Layout
+--------------------------------------------------------------------------------
+
+local function applyScreen(info)
+	uiScale.Scale = info.scale
+	if info.deviceClass == "Mobile" then
+		frame.Position = UDim2.new(0, 10, 0, 65)
+	elseif info.deviceClass == "Tablet" then
+		local innerScale = 1.25 -- ZMĚŇ TOTO ČÍSLO (zvětšení vnitřku)
+		uiScale.Scale = info.scale * innerScale
+		frame.Position = UDim2.new(0, 16, 0, 65)
+	else
+		frame.Position = UDim2.new(0, 16, 0, 65)
+	end
+end
+
+ScreenManager.ScreenChanged:Connect(applyScreen)
+if ScreenManager.CurrentClass then
+	applyScreen({
+		deviceClass = ScreenManager.CurrentClass,
+		scale = ScreenManager.CurrentScale
+	})
+end

@@ -19,6 +19,7 @@ local Remotes = stateFolder:WaitForChild("RemotesRef").Value
 local BuySlot = Remotes:WaitForChild("BuySlot")
 
 local mainUI = playerGui:WaitForChild("MainUI")
+local ScreenManager = require(script.Parent:WaitForChild("ScreenManager"))
 
 --------------------------------------------------------------------------------
 -- Build UI
@@ -27,16 +28,21 @@ local mainUI = playerGui:WaitForChild("MainUI")
 local frame = Instance.new("Frame")
 frame.Name = "ShopFrame"
 frame.Size = UDim2.new(0, 280, 0, 380)
-frame.Position = UDim2.new(0.5, -140, 0.5, -190)
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.Position = UDim2.new(0.5, 0, 0.5, 0) -- perfectly centered on all screens
 frame.BackgroundColor3 = Color3.fromRGB(30, 25, 40)
 frame.BackgroundTransparency = 0.05
 frame.BorderSizePixel = 0
-frame.Visible = false  -- toggled by shop button
+frame.Visible = false -- toggled by MobileNavBar Shop button
 frame.Parent = mainUI
 
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 12)
 corner.Parent = frame
+
+local frameScale = Instance.new("UIScale")
+frameScale.Scale = 1.0
+frameScale.Parent = frame
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 36)
@@ -141,13 +147,17 @@ end
 local debounce = false
 
 -- 1. Egg Slot Expansion
-local eggSlotRow = createShopItem(contentFrame, 1,
+local eggSlotRow = createShopItem(
+	contentFrame,
+	1,
 	"🥚 +1 Egg Slot",
 	"Expand egg inventory",
 	"Buy",
 	Color3.fromRGB(80, 150, 80),
 	function()
-		if debounce then return end
+		if debounce then
+			return
+		end
 		debounce = true
 		BuySlot:InvokeServer("egg")
 		task.wait(0.5)
@@ -156,13 +166,17 @@ local eggSlotRow = createShopItem(contentFrame, 1,
 )
 
 -- 2. Job Slot Expansion
-local jobSlotRow = createShopItem(contentFrame, 2,
+local jobSlotRow = createShopItem(
+	contentFrame,
+	2,
 	"📺 +1 Job Slot",
 	"Expand streaming jobs",
 	"Buy",
 	Color3.fromRGB(80, 120, 180),
 	function()
-		if debounce then return end
+		if debounce then
+			return
+		end
 		debounce = true
 		BuySlot:InvokeServer("job")
 		task.wait(0.5)
@@ -171,7 +185,9 @@ local jobSlotRow = createShopItem(contentFrame, 2,
 )
 
 -- 3. 2x Luck Game Pass
-createShopItem(contentFrame, 3,
+createShopItem(
+	contentFrame,
+	3,
 	"🍀 2x Luck (Permanent)",
 	"Doubles hatch odds for rarer eggs",
 	"R$ Buy",
@@ -186,7 +202,9 @@ createShopItem(contentFrame, 3,
 )
 
 -- 4. Viewers Pack (Dev Product)
-createShopItem(contentFrame, 4,
+createShopItem(
+	contentFrame,
+	4,
 	"💰 Viewers Pack",
 	Config.VIEWERS_PACK_AMOUNT .. " Viewers instantly",
 	"R$ Buy",
@@ -201,7 +219,9 @@ createShopItem(contentFrame, 4,
 )
 
 -- 5. Instant Claim (Dev Product)
-createShopItem(contentFrame, 5,
+createShopItem(
+	contentFrame,
+	5,
 	"⏩ Instant Claim",
 	"Skip session timer, claim rewards now",
 	"R$ Buy",
@@ -220,7 +240,9 @@ createShopItem(contentFrame, 5,
 --------------------------------------------------------------------------------
 
 local function updateCosts(data)
-	if not data then return end
+	if not data then
+		return
+	end
 
 	-- Egg slot cost
 	local eggSlotsBought = data.eggSlotsCap - Config.EGG_SLOTS_INITIAL
@@ -261,19 +283,60 @@ dataChangedEvent.Event:Connect(function(data)
 	updateCosts(data)
 end)
 
--- Toggle button (placed outside the shop frame, always visible)
+-- Always-visible shop toggle button in the top-right corner
 local shopToggle = Instance.new("TextButton")
 shopToggle.Name = "ShopToggle"
-shopToggle.Size = UDim2.new(0, 60, 0, 40)
-shopToggle.Position = UDim2.new(1, -70, 0, 10)
+shopToggle.Size = UDim2.new(0, 64, 0, 44)
+shopToggle.AnchorPoint = Vector2.new(1, 0)
+shopToggle.Position = UDim2.new(1, -16, 0, 16)
 shopToggle.BackgroundColor3 = Color3.fromRGB(200, 160, 40)
 shopToggle.Text = "🛒"
-shopToggle.TextSize = 22
+shopToggle.TextSize = 24
 shopToggle.Font = Enum.Font.GothamBold
 shopToggle.AutoButtonColor = true
+shopToggle.ZIndex = 20
 shopToggle.Parent = mainUI
+
+local uiScale = Instance.new("UIScale")
+uiScale.Scale = 1.0
+uiScale.Parent = shopToggle
 Instance.new("UICorner", shopToggle).CornerRadius = UDim.new(0, 8)
 
 shopToggle.MouseButton1Click:Connect(function()
 	frame.Visible = not frame.Visible
 end)
+
+--------------------------------------------------------------------------------
+-- Responsive Layout
+--------------------------------------------------------------------------------
+
+local function applyScreen(info)
+	if info.deviceClass == "Mobile" then
+		uiScale.Scale = info.scale
+		shopToggle.Position = UDim2.new(1, -10, 0, 10)
+
+		local mobileScale = 0.85 -- ZMĚŇ TOTO ČÍSLO (zmenšení celého okna na mobilu)
+		frameScale.Scale = info.scale * mobileScale
+		frame.Size = UDim2.new(0, 280, 0, 300) -- Speciální snížená výška pro mobil
+	elseif info.deviceClass == "Tablet" then
+		uiScale.Scale = info.scale * 1.15
+		shopToggle.Position = UDim2.new(1, -16, 0, 16)
+		local tabletScale = 1.2 -- ZMĚŇ TOTO ČÍSLO (celkové zvětšení okna shopu na tabletu)
+		frameScale.Scale = info.scale * tabletScale
+		frame.Size = UDim2.new(0, 280, 0, 380)
+	else
+		uiScale.Scale = info.scale * 1.25
+		shopToggle.Position = UDim2.new(1, -20, 0, 20)
+		local pcScale = 1.15 -- ZMĚŇ TOTO ČÍSLO (celkové zvětšení okna shopu na počítači)
+		frameScale.Scale = info.scale * pcScale
+		frame.Size = UDim2.new(0, 280, 0, 380)
+	end
+end
+
+ScreenManager.ScreenChanged:Connect(applyScreen)
+if ScreenManager.CurrentClass then
+	applyScreen({
+		deviceClass = ScreenManager.CurrentClass,
+		scale = ScreenManager.CurrentScale,
+	})
+end

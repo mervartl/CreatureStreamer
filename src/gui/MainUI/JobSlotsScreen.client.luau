@@ -20,6 +20,7 @@ local Remotes = stateFolder:WaitForChild("RemotesRef").Value
 local SellWorker = Remotes:WaitForChild("SellWorker")
 
 local mainUI = playerGui:WaitForChild("MainUI")
+local ScreenManager = require(script.Parent:WaitForChild("ScreenManager"))
 
 --------------------------------------------------------------------------------
 -- Build UI
@@ -27,13 +28,23 @@ local mainUI = playerGui:WaitForChild("MainUI")
 
 local frame = Instance.new("Frame")
 frame.Name = "JobSlotsFrame"
-frame.Size = UDim2.new(0, 220, 0, 400)
-frame.Position = UDim2.new(1, -240, 0.5, -200)
+frame.Size = UDim2.new(0.92, 0, 0.85, 0)
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.Position = UDim2.new(0.5, 0, 0.5, 0)  -- perfectly centered
+frame.ZIndex = 40
 frame.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
 frame.BackgroundTransparency = 0.05
 frame.BorderSizePixel = 0
 frame.Visible = false
 frame.Parent = mainUI
+
+local frameSizeConstraint = Instance.new("UISizeConstraint")
+frameSizeConstraint.MaxSize = Vector2.new(480, 500)
+frameSizeConstraint.Parent = frame
+
+local uiScale = Instance.new("UIScale")
+uiScale.Scale = 1.0
+uiScale.Parent = frame
 
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 12)
@@ -41,23 +52,23 @@ corner.Parent = frame
 
 local title = Instance.new("TextLabel")
 title.Name = "Title"
-title.Size = UDim2.new(1, 0, 0, 36)
+title.Size = UDim2.new(1, 0, 0, 44)
 title.Position = UDim2.new(0, 0, 0, 6)
 title.BackgroundTransparency = 1
 title.Text = "📺 Streaming Jobs"
 title.TextColor3 = Color3.fromRGB(100, 200, 255)
-title.TextSize = 18
+title.TextSize = 22
 title.Font = Enum.Font.GothamBold
 title.Parent = frame
 
 local incomeLabel = Instance.new("TextLabel")
 incomeLabel.Name = "IncomeLabel"
 incomeLabel.Size = UDim2.new(1, -20, 0, 20)
-incomeLabel.Position = UDim2.new(0, 10, 0, 40)
+incomeLabel.Position = UDim2.new(0, 10, 0, 46)
 incomeLabel.BackgroundTransparency = 1
 incomeLabel.Text = "Total Income: 0/min"
 incomeLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-incomeLabel.TextSize = 13
+incomeLabel.TextSize = 15
 incomeLabel.Font = Enum.Font.GothamBold
 incomeLabel.TextXAlignment = Enum.TextXAlignment.Left
 incomeLabel.Parent = frame
@@ -65,8 +76,8 @@ incomeLabel.Parent = frame
 -- Scrolling list for workers
 local scrollFrame = Instance.new("ScrollingFrame")
 scrollFrame.Name = "WorkerList"
-scrollFrame.Size = UDim2.new(1, -20, 1, -80)
-scrollFrame.Position = UDim2.new(0, 10, 0, 65)
+scrollFrame.Size = UDim2.new(1, -20, 1, -90)
+scrollFrame.Position = UDim2.new(0, 10, 0, 75)
 scrollFrame.BackgroundTransparency = 1
 scrollFrame.BorderSizePixel = 0
 scrollFrame.ScrollBarThickness = 5
@@ -84,6 +95,16 @@ listLayout.Parent = scrollFrame
 --------------------------------------------------------------------------------
 
 local debounce = false
+local cachedData = nil
+local currentLayout = {
+	rowHeight = 72,
+	nameSize = 15,
+	incSize = 13,
+	sellSize = 12,
+	emptySize = 15,
+	sellBtnHeight = 36,
+	sellBtnY = -18
+}
 
 local function renderWorkers(data)
 	-- Clear existing
@@ -112,7 +133,7 @@ local function renderWorkers(data)
 
 		local row = Instance.new("Frame")
 		row.Name = "Worker_" .. worker.id
-		row.Size = UDim2.new(1, 0, 0, 56)
+		row.Size = UDim2.new(1, 0, 0, currentLayout.rowHeight)
 		row.LayoutOrder = i
 		row.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
 		row.BorderSizePixel = 0
@@ -131,36 +152,36 @@ local function renderWorkers(data)
 
 		-- Name
 		local nameLabel = Instance.new("TextLabel")
-		nameLabel.Size = UDim2.new(0.6, -16, 0, 20)
-		nameLabel.Position = UDim2.new(0, 16, 0, 4)
+		nameLabel.Size = UDim2.new(0.6, -16, 0, 24)
+		nameLabel.Position = UDim2.new(0, 16, 0, 6)
 		nameLabel.BackgroundTransparency = 1
 		nameLabel.Text = tierInfo.displayName
 		nameLabel.TextColor3 = tierInfo.color
-		nameLabel.TextSize = 13
+		nameLabel.TextSize = currentLayout.nameSize
 		nameLabel.Font = Enum.Font.GothamBold
 		nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 		nameLabel.Parent = row
 
 		-- Income
 		local incLabel = Instance.new("TextLabel")
-		incLabel.Size = UDim2.new(0.6, -16, 0, 16)
-		incLabel.Position = UDim2.new(0, 16, 0, 26)
+		incLabel.Size = UDim2.new(0.6, -16, 0, 20)
+		incLabel.Position = UDim2.new(0, 16, 0, 36)
 		incLabel.BackgroundTransparency = 1
 		incLabel.Text = "📈 " .. income .. "/min"
 		incLabel.TextColor3 = Color3.fromRGB(140, 200, 140)
-		incLabel.TextSize = 11
+		incLabel.TextSize = currentLayout.incSize
 		incLabel.Font = Enum.Font.Gotham
 		incLabel.TextXAlignment = Enum.TextXAlignment.Left
 		incLabel.Parent = row
 
 		-- Sell button
 		local sellBtn = Instance.new("TextButton")
-		sellBtn.Size = UDim2.new(0.35, 0, 0, 30)
-		sellBtn.Position = UDim2.new(0.62, 0, 0.5, -15)
+		sellBtn.Size = UDim2.new(0.35, 0, 0, currentLayout.sellBtnHeight)
+		sellBtn.Position = UDim2.new(0.62, 0, 0.5, currentLayout.sellBtnY)
 		sellBtn.BackgroundColor3 = Color3.fromRGB(150, 60, 60)
 		sellBtn.Text = "Sell\n" .. sellValue
 		sellBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-		sellBtn.TextSize = 10
+		sellBtn.TextSize = currentLayout.sellSize
 		sellBtn.Font = Enum.Font.GothamBold
 		sellBtn.AutoButtonColor = true
 		sellBtn.Parent = row
@@ -185,7 +206,7 @@ local function renderWorkers(data)
 	for j = 1, emptySlots do
 		local emptyRow = Instance.new("Frame")
 		emptyRow.Name = "EmptySlot_" .. j
-		emptyRow.Size = UDim2.new(1, 0, 0, 56)
+		emptyRow.Size = UDim2.new(1, 0, 0, currentLayout.rowHeight)
 		emptyRow.LayoutOrder = #data.workers + j
 		emptyRow.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
 		emptyRow.BackgroundTransparency = 0.3
@@ -199,21 +220,92 @@ local function renderWorkers(data)
 		emptyLabel.BackgroundTransparency = 1
 		emptyLabel.Text = "Empty Slot"
 		emptyLabel.TextColor3 = Color3.fromRGB(80, 80, 100)
-		emptyLabel.TextSize = 13
+		emptyLabel.TextSize = currentLayout.emptySize
 		emptyLabel.Font = Enum.Font.Gotham
 		emptyLabel.Parent = emptyRow
 	end
 
 	-- Update canvas
 	local totalRows = data.jobSlotsCap
-	scrollFrame.CanvasSize = UDim2.new(0, 0, 0, totalRows * 62)
+	scrollFrame.CanvasSize = UDim2.new(0, 0, 0, totalRows * (currentLayout.rowHeight + 6))
 end
 
 -- Update when data changes
 dataChangedEvent.Event:Connect(function(data)
+	cachedData = data
 	renderWorkers(data)
 end)
 
 proximityEvent.Event:Connect(function(isNear)
-	frame.Visible = isNear
+	-- MobileNavBar handles showing the panel.
+	-- We only force-close it when the player leaves the plot.
+	if not isNear then
+		frame.Visible = false
+	end
 end)
+
+--------------------------------------------------------------------------------
+-- Responsive Layout
+--------------------------------------------------------------------------------
+
+local function applyScreen(info)
+	uiScale.Scale = info.scale
+	local invScale = info.scale > 0 and info.scale or 1
+
+	if info.deviceClass == "Mobile" then
+		frame.AnchorPoint = Vector2.new(0.5, 0)
+		frame.Position = UDim2.new(0.5, 0, 0, 65 / invScale)
+		frame.Size = UDim2.new(0.96 / invScale, 0, 1 / invScale, -110 / invScale)
+		
+		currentLayout = {
+			rowHeight = 72,
+			nameSize = 15,
+			incSize = 13,
+			sellSize = 12,
+			emptySize = 15,
+			sellBtnHeight = 36,
+			sellBtnY = -18
+		}
+	elseif info.deviceClass == "Tablet" then
+		uiScale.Scale = info.scale * 1.08 -- 8% zvětšení okna
+		frame.AnchorPoint = Vector2.new(0.5, 0.5)
+		frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+		frame.Size = UDim2.new(0.92, 0, 0.85, 0)
+		
+		currentLayout = {
+			rowHeight = 90,
+			nameSize = 18,
+			incSize = 16,
+			sellSize = 15,
+			emptySize = 18,
+			sellBtnHeight = 46,
+			sellBtnY = -23
+		}
+	else
+		frame.AnchorPoint = Vector2.new(0.5, 0.5)
+		frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+		frame.Size = UDim2.new(0.90, 0, 0.85, 0)
+		
+		currentLayout = {
+			rowHeight = 72,
+			nameSize = 15,
+			incSize = 13,
+			sellSize = 12,
+			emptySize = 15,
+			sellBtnHeight = 36,
+			sellBtnY = -18
+		}
+	end
+	
+	if cachedData and frame.Visible then
+		renderWorkers(cachedData)
+	end
+end
+
+ScreenManager.ScreenChanged:Connect(applyScreen)
+if ScreenManager.CurrentClass then
+	applyScreen({
+		deviceClass = ScreenManager.CurrentClass,
+		scale = ScreenManager.CurrentScale
+	})
+end

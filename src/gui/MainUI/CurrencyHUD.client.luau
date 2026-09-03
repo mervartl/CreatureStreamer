@@ -15,6 +15,8 @@ local stateFolder = playerGui:WaitForChild("ClientState")
 local dataChangedEvent = stateFolder:WaitForChild("DataChanged")
 
 local mainUI = playerGui:WaitForChild("MainUI")
+mainUI.IgnoreGuiInset = true
+local ScreenManager = require(script.Parent:WaitForChild("ScreenManager"))
 
 --------------------------------------------------------------------------------
 -- Build HUD
@@ -22,33 +24,42 @@ local mainUI = playerGui:WaitForChild("MainUI")
 
 local hud = Instance.new("Frame")
 hud.Name = "CurrencyHUD"
-hud.Size = UDim2.new(0, 420, 0, 40)
-hud.Position = UDim2.new(0.5, -150, 0, 8)
+hud.Size = UDim2.new(0, 500, 0, 48)
+hud.AnchorPoint = Vector2.new(0.5, 0)
+hud.Position = UDim2.new(0.5, 0, 0, 12)
 hud.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 hud.BackgroundTransparency = 0.15
 hud.BorderSizePixel = 0
 hud.ZIndex = 20
 hud.Parent = mainUI
 
+local hudConstraint = Instance.new("UISizeConstraint")
+hudConstraint.MaxSize = Vector2.new(600, 48)
+hudConstraint.Parent = hud
+
+local uiScale = Instance.new("UIScale")
+uiScale.Scale = 1.0
+uiScale.Parent = hud
+
 Instance.new("UICorner", hud).CornerRadius = UDim.new(0, 10)
 
 local currencyIcon = Instance.new("TextLabel")
 currencyIcon.Size = UDim2.new(0, 30, 1, 0)
-currencyIcon.Position = UDim2.new(0, 8, 0, 0)
+currencyIcon.Position = UDim2.new(0, 10, 0, 0)
 currencyIcon.BackgroundTransparency = 1
 currencyIcon.Text = "👁"
-currencyIcon.TextSize = 20
+currencyIcon.TextSize = 24
 currencyIcon.ZIndex = 21
 currencyIcon.Parent = hud
 
 local currencyLabel = Instance.new("TextLabel")
 currencyLabel.Name = "CurrencyLabel"
-currencyLabel.Size = UDim2.new(0, 100, 1, 0)
-currencyLabel.Position = UDim2.new(0, 36, 0, 0)
+currencyLabel.Size = UDim2.new(0, 150, 1, 0)
+currencyLabel.Position = UDim2.new(0, 40, 0, 0)
 currencyLabel.BackgroundTransparency = 1
 currencyLabel.Text = "0"
 currencyLabel.TextColor3 = Color3.fromRGB(255, 220, 80)
-currencyLabel.TextSize = 18
+currencyLabel.TextSize = 20
 currencyLabel.Font = Enum.Font.GothamBold
 currencyLabel.TextXAlignment = Enum.TextXAlignment.Left
 currencyLabel.ZIndex = 21
@@ -61,7 +72,7 @@ slotsInfo.Position = UDim2.new(1, -260, 0, 0)
 slotsInfo.BackgroundTransparency = 1
 slotsInfo.Text = "🥚 0/10 | 📺 0/2"
 slotsInfo.TextColor3 = Color3.fromRGB(180, 180, 200)
-slotsInfo.TextSize = 12
+slotsInfo.TextSize = 14
 slotsInfo.Font = Enum.Font.Gotham
 slotsInfo.TextXAlignment = Enum.TextXAlignment.Right
 slotsInfo.ZIndex = 21
@@ -69,12 +80,12 @@ slotsInfo.Parent = hud
 
 local oddsButton = Instance.new("TextButton")
 oddsButton.Name = "OddsButton"
-oddsButton.Size = UDim2.new(0, 90, 0, 26)
-oddsButton.Position = UDim2.new(1, -98, 0.5, -13)
+oddsButton.Size = UDim2.new(0, 100, 0, 32)
+oddsButton.Position = UDim2.new(1, -108, 0.5, -16)
 oddsButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
 oddsButton.Text = "📊 View Odds"
 oddsButton.TextColor3 = Color3.fromRGB(160, 180, 255)
-oddsButton.TextSize = 11
+oddsButton.TextSize = 13
 oddsButton.Font = Enum.Font.Gotham
 oddsButton.AutoButtonColor = true
 oddsButton.ZIndex = 22
@@ -115,3 +126,33 @@ dataChangedEvent.Event:Connect(function(data)
 		#data.workers, data.jobSlotsCap
 	)
 end)
+
+--------------------------------------------------------------------------------
+-- Responsive Layout
+--------------------------------------------------------------------------------
+
+local function applyScreen(info)
+	uiScale.Scale = info.scale
+	if info.deviceClass == "Mobile" then
+		hud.Position = UDim2.new(0.58, 0, 0, 10)
+		hud.Size = UDim2.new(0, 420, 0, 40)
+		hudConstraint.MaxSize = Vector2.new(440, 40)
+	elseif info.deviceClass == "Tablet" then
+		hud.Position = UDim2.new(0.5, 0, 0, 12)
+		hud.Size = UDim2.new(0, 480, 0, 48)
+		hudConstraint.MaxSize = Vector2.new(500, 48)
+	else
+		hud.Position = UDim2.new(0.5, 0, 0, 12)
+		hud.Size = UDim2.new(0, 540, 0, 48)
+		hudConstraint.MaxSize = Vector2.new(600, 48)
+	end
+end
+
+ScreenManager.ScreenChanged:Connect(applyScreen)
+-- Apply immediately for initial load
+if ScreenManager.CurrentClass then
+	applyScreen({
+		deviceClass = ScreenManager.CurrentClass,
+		scale = ScreenManager.CurrentScale
+	})
+end

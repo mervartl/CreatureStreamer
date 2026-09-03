@@ -22,6 +22,7 @@ local SellEgg = Remotes:WaitForChild("SellEgg")
 local AssignEggToJob = Remotes:WaitForChild("AssignEggToJob")
 
 local mainUI = playerGui:WaitForChild("MainUI")
+local ScreenManager = require(script.Parent:WaitForChild("ScreenManager"))
 
 --------------------------------------------------------------------------------
 -- Build UI
@@ -29,13 +30,23 @@ local mainUI = playerGui:WaitForChild("MainUI")
 
 local frame = Instance.new("Frame")
 frame.Name = "EggInventoryFrame"
-frame.Size = UDim2.new(0, 360, 0, 420)
-frame.Position = UDim2.new(0, 20, 1, -440)
+frame.Size = UDim2.new(0.92, 0, 0.85, 0) -- 92% width, 85% height so it fits on mobile
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.Position = UDim2.new(0.5, 0, 0.5, 0) -- perfectly centered
+frame.ZIndex = 40
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 frame.BackgroundTransparency = 0.05
 frame.BorderSizePixel = 0
 frame.Visible = false
 frame.Parent = mainUI
+
+local frameSizeConstraint = Instance.new("UISizeConstraint")
+frameSizeConstraint.MaxSize = Vector2.new(480, 500)
+frameSizeConstraint.Parent = frame
+
+local uiScale = Instance.new("UIScale")
+uiScale.Scale = 1.0
+uiScale.Parent = frame
 
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 12)
@@ -43,23 +54,23 @@ corner.Parent = frame
 
 local title = Instance.new("TextLabel")
 title.Name = "Title"
-title.Size = UDim2.new(1, 0, 0, 36)
+title.Size = UDim2.new(1, 0, 0, 44)
 title.Position = UDim2.new(0, 0, 0, 6)
 title.BackgroundTransparency = 1
 title.Text = "🥚 Egg Inventory"
 title.TextColor3 = Color3.fromRGB(255, 220, 80)
-title.TextSize = 18
+title.TextSize = 22
 title.Font = Enum.Font.GothamBold
 title.Parent = frame
 
 local infoLabel = Instance.new("TextLabel")
 infoLabel.Name = "InfoLabel"
 infoLabel.Size = UDim2.new(1, -20, 0, 20)
-infoLabel.Position = UDim2.new(0, 10, 0, 40)
+infoLabel.Position = UDim2.new(0, 10, 0, 46)
 infoLabel.BackgroundTransparency = 1
 infoLabel.Text = "Select two same-tier eggs to merge"
 infoLabel.TextColor3 = Color3.fromRGB(160, 160, 180)
-infoLabel.TextSize = 12
+infoLabel.TextSize = 14
 infoLabel.Font = Enum.Font.Gotham
 infoLabel.TextXAlignment = Enum.TextXAlignment.Left
 infoLabel.Parent = frame
@@ -67,8 +78,8 @@ infoLabel.Parent = frame
 -- Scrolling grid for eggs
 local scrollFrame = Instance.new("ScrollingFrame")
 scrollFrame.Name = "EggGrid"
-scrollFrame.Size = UDim2.new(1, -20, 1, -130)
-scrollFrame.Position = UDim2.new(0, 10, 0, 65)
+scrollFrame.Size = UDim2.new(1, -20, 1, -140)
+scrollFrame.Position = UDim2.new(0, 10, 0, 75)
 scrollFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 scrollFrame.BackgroundTransparency = 0.5
 scrollFrame.BorderSizePixel = 0
@@ -82,8 +93,8 @@ scrollCorner.CornerRadius = UDim.new(0, 8)
 scrollCorner.Parent = scrollFrame
 
 local gridLayout = Instance.new("UIGridLayout")
-gridLayout.CellSize = UDim2.new(0, 60, 0, 70)
-gridLayout.CellPadding = UDim2.new(0, 6, 0, 6)
+gridLayout.CellSize = UDim2.new(0, 72, 0, 84)
+gridLayout.CellPadding = UDim2.new(0, 8, 0, 8)
 gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
 gridLayout.Parent = scrollFrame
 
@@ -95,8 +106,8 @@ gridPadding.Parent = scrollFrame
 -- Action buttons row
 local actionRow = Instance.new("Frame")
 actionRow.Name = "ActionRow"
-actionRow.Size = UDim2.new(1, -20, 0, 36)
-actionRow.Position = UDim2.new(0, 10, 1, -55)
+actionRow.Size = UDim2.new(1, -20, 0, 44)
+actionRow.Position = UDim2.new(0, 10, 1, -60)
 actionRow.BackgroundTransparency = 1
 actionRow.Parent = frame
 
@@ -107,9 +118,10 @@ mergeBtn.Position = UDim2.new(0, 0, 0, 0)
 mergeBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
 mergeBtn.Text = "🔄 Merge"
 mergeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-mergeBtn.TextSize = 13
+mergeBtn.TextSize = 15
 mergeBtn.Font = Enum.Font.GothamBold
 mergeBtn.AutoButtonColor = true
+mergeBtn.ZIndex = 42
 mergeBtn.Parent = actionRow
 Instance.new("UICorner", mergeBtn).CornerRadius = UDim.new(0, 6)
 
@@ -120,9 +132,10 @@ sellBtn.Position = UDim2.new(0.34, 0, 0, 0)
 sellBtn.BackgroundColor3 = Color3.fromRGB(180, 80, 80)
 sellBtn.Text = "💰 Sell"
 sellBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-sellBtn.TextSize = 13
+sellBtn.TextSize = 15
 sellBtn.Font = Enum.Font.GothamBold
 sellBtn.AutoButtonColor = true
+sellBtn.ZIndex = 42
 sellBtn.Parent = actionRow
 Instance.new("UICorner", sellBtn).CornerRadius = UDim.new(0, 6)
 
@@ -133,9 +146,10 @@ assignBtn.Position = UDim2.new(0.68, 0, 0, 0)
 assignBtn.BackgroundColor3 = Color3.fromRGB(80, 120, 180)
 assignBtn.Text = "📺 Assign"
 assignBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-assignBtn.TextSize = 13
+assignBtn.TextSize = 15
 assignBtn.Font = Enum.Font.GothamBold
 assignBtn.AutoButtonColor = true
+assignBtn.ZIndex = 42
 assignBtn.Parent = actionRow
 Instance.new("UICorner", assignBtn).CornerRadius = UDim.new(0, 6)
 
@@ -143,13 +157,15 @@ Instance.new("UICorner", assignBtn).CornerRadius = UDim.new(0, 6)
 -- Selection logic
 --------------------------------------------------------------------------------
 
-local selectedEggs = {}  -- array of egg IDs (max 2 for merge, 1 for sell/assign)
-local eggButtons = {}     -- map of eggId -> button reference
+local selectedEggs = {} -- array of egg IDs (max 2 for merge, 1 for sell/assign)
+local eggButtons = {} -- map of eggId -> button reference
 
 local function clearSelection()
 	for _, btn in pairs(eggButtons) do
 		local overlay = btn:FindFirstChild("SelectionOverlay")
-		if overlay then overlay.Visible = false end
+		if overlay then
+			overlay.Visible = false
+		end
 	end
 	selectedEggs = {}
 	infoLabel.Text = "Select two same-tier eggs to merge"
@@ -158,15 +174,9 @@ end
 
 local function updateButtonStates()
 	local selCount = #selectedEggs
-	mergeBtn.BackgroundColor3 = if selCount == 2
-		then Color3.fromRGB(80, 180, 80)
-		else Color3.fromRGB(100, 100, 120)
-	sellBtn.BackgroundColor3 = if selCount >= 1
-		then Color3.fromRGB(180, 80, 80)
-		else Color3.fromRGB(100, 100, 120)
-	assignBtn.BackgroundColor3 = if selCount == 1
-		then Color3.fromRGB(80, 120, 180)
-		else Color3.fromRGB(100, 100, 120)
+	mergeBtn.BackgroundColor3 = if selCount == 2 then Color3.fromRGB(80, 180, 80) else Color3.fromRGB(100, 100, 120)
+	sellBtn.BackgroundColor3 = if selCount >= 1 then Color3.fromRGB(180, 80, 80) else Color3.fromRGB(100, 100, 120)
+	assignBtn.BackgroundColor3 = if selCount == 1 then Color3.fromRGB(80, 120, 180) else Color3.fromRGB(100, 100, 120)
 end
 
 local function toggleSelect(eggId: string)
@@ -176,7 +186,9 @@ local function toggleSelect(eggId: string)
 			table.remove(selectedEggs, i)
 			if eggButtons[eggId] then
 				local overlay = eggButtons[eggId]:FindFirstChild("SelectionOverlay")
-				if overlay then overlay.Visible = false end
+				if overlay then
+					overlay.Visible = false
+				end
 			end
 			updateButtonStates()
 			return
@@ -189,14 +201,18 @@ local function toggleSelect(eggId: string)
 		local oldId = table.remove(selectedEggs, 1)
 		if eggButtons[oldId] then
 			local overlay = eggButtons[oldId]:FindFirstChild("SelectionOverlay")
-			if overlay then overlay.Visible = false end
+			if overlay then
+				overlay.Visible = false
+			end
 		end
 	end
 
 	table.insert(selectedEggs, eggId)
 	if eggButtons[eggId] then
 		local overlay = eggButtons[eggId]:FindFirstChild("SelectionOverlay")
-		if overlay then overlay.Visible = true end
+		if overlay then
+			overlay.Visible = true
+		end
 	end
 	updateButtonStates()
 end
@@ -239,7 +255,7 @@ local function renderEggs(data)
 		btn.BackgroundColor3 = tierInfo.color
 		btn.Text = tierInfo.rarityName .. "\nL" .. tierInfo.level
 		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-		btn.TextSize = 11
+		btn.TextSize = 13
 		btn.Font = Enum.Font.GothamBold
 		btn.TextWrapped = true
 		btn.AutoButtonColor = true
@@ -267,7 +283,7 @@ local function renderEggs(data)
 
 	-- Update canvas size
 	local rows = math.ceil(#sorted / 5)
-	scrollFrame.CanvasSize = UDim2.new(0, 0, 0, rows * 76 + 12)
+	scrollFrame.CanvasSize = UDim2.new(0, 0, 0, rows * 92 + 12)
 
 	updateButtonStates()
 end
@@ -279,7 +295,9 @@ end
 local debounce = false
 
 mergeBtn.MouseButton1Click:Connect(function()
-	if debounce or #selectedEggs < 2 then return end
+	if debounce or #selectedEggs < 2 then
+		return
+	end
 	debounce = true
 
 	infoLabel.Text = "Merging..."
@@ -301,7 +319,9 @@ mergeBtn.MouseButton1Click:Connect(function()
 end)
 
 sellBtn.MouseButton1Click:Connect(function()
-	if debounce or #selectedEggs < 1 then return end
+	if debounce or #selectedEggs < 1 then
+		return
+	end
 	debounce = true
 
 	local eggId = selectedEggs[1]
@@ -323,7 +343,9 @@ sellBtn.MouseButton1Click:Connect(function()
 end)
 
 assignBtn.MouseButton1Click:Connect(function()
-	if debounce or #selectedEggs ~= 1 then return end
+	if debounce or #selectedEggs ~= 1 then
+		return
+	end
 	debounce = true
 
 	local eggId = selectedEggs[1]
@@ -372,9 +394,56 @@ dataChangedEvent.Event:Connect(function(data)
 end)
 
 proximityEvent.Event:Connect(function(isNear)
-	frame.Visible = isNear
+	-- MobileNavBar handles opening. We only close.
 	if not isNear then
+		frame.Visible = false
 		clearSelection()
 		updateButtonStates()
 	end
 end)
+
+--------------------------------------------------------------------------------
+-- Responsive Layout
+--------------------------------------------------------------------------------
+
+local function applyScreen(info)
+	uiScale.Scale = info.scale
+	local invScale = info.scale > 0 and info.scale or 1
+	if info.deviceClass == "Mobile" then
+		frame.AnchorPoint = Vector2.new(0.5, 0)
+		frame.Position = UDim2.new(0.5, 0, 0, 65 / invScale)
+		frame.Size = UDim2.new(0.96 / invScale, 0, 1 / invScale, -110 / invScale)
+
+		-- PŮVODNÍ VELIKOSTI (Mobil)
+		gridLayout.CellSize = UDim2.new(0, 72, 0, 84)
+		actionRow.Size = UDim2.new(1, -20, 0, 44)
+		actionRow.Position = UDim2.new(0, 10, 1, -60)
+	elseif info.deviceClass == "Tablet" then
+		uiScale.Scale = info.scale * 1.08 -- Zvětšení celého okna o 8%
+		frame.AnchorPoint = Vector2.new(0.5, 0.5)
+		frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+		frame.Size = UDim2.new(0.92, 0, 0.85, 0)
+
+		-- ZVĚTŠENÉ VELIKOSTI (Jen pro Tablet!)
+		gridLayout.CellSize = UDim2.new(0, 90, 0, 105)
+		actionRow.Size = UDim2.new(1, -20, 0, 56)
+		actionRow.Position = UDim2.new(0, 10, 1, -72)
+	else
+		frame.AnchorPoint = Vector2.new(0.5, 0.5)
+		frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+		frame.Size = UDim2.new(0.90, 0, 0.85, 0)
+
+		-- PŮVODNÍ VELIKOSTI (Počítač)
+		gridLayout.CellSize = UDim2.new(0, 72, 0, 84)
+		actionRow.Size = UDim2.new(1, -20, 0, 44)
+		actionRow.Position = UDim2.new(0, 10, 1, -60)
+	end
+end
+
+ScreenManager.ScreenChanged:Connect(applyScreen)
+if ScreenManager.CurrentClass then
+	applyScreen({
+		deviceClass = ScreenManager.CurrentClass,
+		scale = ScreenManager.CurrentScale,
+	})
+end

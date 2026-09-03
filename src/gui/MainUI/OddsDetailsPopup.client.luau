@@ -19,6 +19,7 @@ local stateFolder = playerGui:WaitForChild("ClientState")
 local dataChangedEvent = stateFolder:WaitForChild("DataChanged")
 
 local mainUI = playerGui:WaitForChild("MainUI")
+local ScreenManager = require(script.Parent:WaitForChild("ScreenManager"))
 
 --------------------------------------------------------------------------------
 -- Build UI
@@ -26,8 +27,9 @@ local mainUI = playerGui:WaitForChild("MainUI")
 
 local frame = Instance.new("Frame")
 frame.Name = "OddsPopupFrame"
-frame.Size = UDim2.new(0, 300, 0, 340)
-frame.Position = UDim2.new(0.5, -150, 0.5, -170)
+frame.Size = UDim2.new(0, 360, 0, 400) -- Celkové zvětšení okna (bylo 300x340)
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.Position = UDim2.new(0.5, 0, 0.5, 0)  -- perfectly centered on all screens
 frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 frame.BackgroundTransparency = 0.02
 frame.BorderSizePixel = 0
@@ -38,6 +40,10 @@ frame.Parent = mainUI
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 12)
 corner.Parent = frame
+
+local uiScale = Instance.new("UIScale")
+uiScale.Scale = 1.0
+uiScale.Parent = frame
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 32)
@@ -249,3 +255,31 @@ end)
 
 -- Do an initial render with default luck so the popup isn't empty if opened before first sync
 renderOdds(nil)
+
+--------------------------------------------------------------------------------
+-- Responsive Layout
+--------------------------------------------------------------------------------
+
+local function applyScreen(info)
+	if info.deviceClass == "Tablet" then
+		local innerScale = 1.30 -- ZMĚŇ TOTO ČÍSLO (zvětšení vnitřku)
+		uiScale.Scale = info.scale * innerScale
+		frame.Size = UDim2.new(0, 360, 0, 400)
+	elseif info.deviceClass == "Mobile" then
+		local mobileScale = 0.85 -- ZMĚŇ TOTO ČÍSLO (zmenšení celého okna na mobilu)
+		uiScale.Scale = info.scale * mobileScale
+		frame.Size = UDim2.new(0, 360, 0, 320) -- Speciální snížená výška pro mobil (X nebude pod HUDem)
+	else
+		local pcScale = 1.15 -- ZMĚŇ TOTO ČÍSLO (celkové zvětšení okna na počítači)
+		uiScale.Scale = info.scale * pcScale
+		frame.Size = UDim2.new(0, 360, 0, 400)
+	end
+end
+
+ScreenManager.ScreenChanged:Connect(applyScreen)
+if ScreenManager.CurrentClass then
+	applyScreen({
+		deviceClass = ScreenManager.CurrentClass,
+		scale = ScreenManager.CurrentScale
+	})
+end
