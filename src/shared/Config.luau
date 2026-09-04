@@ -65,15 +65,15 @@ Config.RARITY_NAMES = { "Common", "Rare", "Epic", "Legendary" }
 --------------------------------------------------------------------------------
 Config.EGG_SLOTS_INITIAL = 10
 Config.EGG_SLOTS_MAX = 25
-Config.EGG_SLOT_BASE_COST = 400
-Config.EGG_SLOT_COST_SCALE = 1.5 -- each additional slot costs BASE * SCALE^n
+Config.EGG_SLOT_BASE_COST = 1000
+Config.EGG_SLOT_COST_SCALE = 1.6 -- each additional slot costs BASE * SCALE^n
 
 --------------------------------------------------------------------------------
 -- JOB SLOTS (active workers)
 --------------------------------------------------------------------------------
 Config.JOB_SLOTS_INITIAL = 2
 Config.JOB_SLOTS_MAX = 6
-Config.JOB_SLOT_BASE_COST = 5000
+Config.JOB_SLOT_BASE_COST = 8000
 Config.JOB_SLOT_COST_SCALE = 5.0
 
 --------------------------------------------------------------------------------
