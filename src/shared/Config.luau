@@ -271,8 +271,8 @@ Config.DEBUG_USER_IDS = {
 --------------------------------------------------------------------------------
 -- PLOTS & UI PROXIMITY
 --------------------------------------------------------------------------------
-Config.MAX_PLOTS = 20
-Config.PLOT_SPACING = 150
+Config.MAX_PLOTS = 10
+Config.PLOT_RADIUS = 120 -- Distance from center of the island
 Config.WORKER_BASE_SIZE = Vector3.new(1.6, 2.5, 1.6)
 Config.WORKER_SIZE_PER_TIER = 0.2
 Config.WORKER_VISUAL_SCALE = 0.7 -- Global visual scale adjustment

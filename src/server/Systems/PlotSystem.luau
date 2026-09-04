@@ -67,9 +67,19 @@ function PlotSystem.assignPlot(player: Player)
 	local originalPivot = template:GetPivot()
 	local originalY = originalPivot.Position.Y
 	
-	-- Position the plot along the X axis spaced by PLOT_SPACING
-	local plotPosition = Vector3.new(gridIndex * Config.PLOT_SPACING, originalY, 0)
-	plot:PivotTo(originalPivot.Rotation + plotPosition)
+	-- Position the plot in a circle around the center (0, originalY, 0)
+	local angle = (gridIndex / Config.MAX_PLOTS) * math.pi * 2
+	local plotPosition = Vector3.new(
+		math.cos(angle) * Config.PLOT_RADIUS,
+		originalY,
+		math.sin(angle) * Config.PLOT_RADIUS
+	)
+	
+	-- Orient the plot so it faces the center of the island
+	local centerPosition = Vector3.new(0, originalY, 0)
+	-- CFrame.lookAt points the front of the model towards the target
+	local lookAtCFrame = CFrame.lookAt(plotPosition, centerPosition)
+	plot:PivotTo(lookAtCFrame)
 	
 	-- Parent to Workspace AFTER positioning and anchoring
 	plot.Parent = Workspace
