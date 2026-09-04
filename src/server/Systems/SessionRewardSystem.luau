@@ -64,8 +64,20 @@ function SessionRewardSystem.claim(player: Player, milestoneIndex: number)
 	data.sessionRewardsClaimed[milestoneIndex] = true
 
 	-- Award currency
-	if milestone.currency and milestone.currency > 0 then
-		CurrencySystem.addCurrency(player, milestone.currency)
+	local baseCurrency = milestone.flatBase or 0
+	local minutesMult = milestone.minutesMultiplier or 0
+	local incomePerMinute = 0
+	
+	if minutesMult > 0 then
+		local ticksPerMinute = 60 / Config.INCOME_TICK_SECONDS
+		for _, worker in ipairs(data.workers) do
+			incomePerMinute = incomePerMinute + (Config.INCOME_PER_TIER[worker.tier] or 0) * ticksPerMinute
+		end
+	end
+	
+	local rewardAmount = baseCurrency + (incomePerMinute * minutesMult)
+	if rewardAmount > 0 then
+		CurrencySystem.addCurrency(player, rewardAmount)
 	end
 
 	-- Apply session luck boost
@@ -76,7 +88,11 @@ function SessionRewardSystem.claim(player: Player, milestoneIndex: number)
 	-- Award free egg at elevated minimum tier
 	if milestone.freeEgg then
 		local luck = LuckSystem.getEffectiveLuck(player)
-		local tier = RarityUtil.rollTierWithFloor(luck, milestone.freeEggMinTier or 0)
+		local floor = data.floorLevel or 0
+		local bonus = milestone.freeEggMinTierBonus or 0
+		local minTier = math.max(bonus, floor + bonus)
+		
+		local tier = RarityUtil.rollTierWithFloor(luck, minTier, data.ceilingLevel, floor)
 		local newEgg = {
 			tier = tier,
 			id = HttpService:GenerateGUID(false),

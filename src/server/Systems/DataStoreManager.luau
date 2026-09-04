@@ -33,6 +33,9 @@ local function getDefaultData()
 		sessionLuckBoost = 0,            -- temporary luck boost from session reward
 		dailyStreak = 0,
 		lastDailyClaimDate = "",         -- "YYYY-MM-DD"
+		ceilingLevel = 0,
+		floorLevel = 0,
+		purchaseHistory = {},
 	}
 end
 
@@ -136,6 +139,7 @@ function DataStoreManager.savePlayerData(player: Player)
 	if not success then
 		warn("[DataStoreManager] CRITICAL: Failed to save data for " .. player.Name .. ": " .. tostring(err))
 	end
+	return success
 end
 
 --- Get the in-memory data for a player (returns nil if not loaded).
@@ -169,6 +173,8 @@ function DataStoreManager.getClientData(player: Player)
 		lastDailyClaimDate = data.lastDailyClaimDate,
 		sessionStartTime = data.sessionStartTime,
 		sessionRewardsClaimed = data.sessionRewardsClaimed,
+		ceilingLevel = data.ceilingLevel,
+		floorLevel = data.floorLevel,
 	}
 end
 

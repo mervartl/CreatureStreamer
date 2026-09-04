@@ -99,7 +99,7 @@ for i = 1, #Config.DAILY_REWARDS do
 	amountLabel.Size = UDim2.new(1, 0, 0, 16)
 	amountLabel.Position = UDim2.new(0, 0, 0, 22)
 	amountLabel.BackgroundTransparency = 1
-	amountLabel.Text = tostring(reward.currency)
+	amountLabel.Text = "?" -- Updated when data loads
 	amountLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 	amountLabel.TextSize = 10
 	amountLabel.Font = Enum.Font.Gotham
@@ -116,7 +116,7 @@ for i = 1, #Config.DAILY_REWARDS do
 	checkLabel.ZIndex = 16
 	checkLabel.Parent = box
 
-	dayBoxes[i] = { frame = box, check = checkLabel }
+	dayBoxes[i] = { frame = box, check = checkLabel, amountLabel = amountLabel }
 end
 
 -- Claim button
@@ -181,9 +181,21 @@ local function updateDisplay(data)
 	local streak = data.dailyStreak or 0
 	streakLabel.Text = "🔥 Streak: " .. streak .. " days"
 
+	-- Calculate total passive income for display
+	local totalIncome = 0
+	if data.workers then
+		for _, worker in ipairs(data.workers) do
+			totalIncome = totalIncome + (Config.INCOME_PER_TIER[worker.tier] or 0)
+		end
+	end
+
 	-- Update day boxes
 	local currentDay = (streak % #Config.DAILY_REWARDS)
 	for i, dayBox in ipairs(dayBoxes) do
+		local rewardConfig = Config.DAILY_REWARDS[i]
+		local estimatedReward = rewardConfig.flatBase + (totalIncome * rewardConfig.minutesMultiplier)
+		dayBox.amountLabel.Text = tostring(estimatedReward)
+
 		if i <= currentDay then
 			dayBox.frame.BackgroundColor3 = Color3.fromRGB(60, 100, 60)
 			dayBox.check.Text = "✅"

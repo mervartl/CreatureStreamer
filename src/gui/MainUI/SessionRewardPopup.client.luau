@@ -97,16 +97,11 @@ for i, milestone in ipairs(Config.SESSION_MILESTONES) do
 
 	local minutes = math.floor(milestone.time / 60)
 	local desc = Instance.new("TextLabel")
+	desc.Name = "Desc"
 	desc.Size = UDim2.new(0.55, 0, 1, 0)
 	desc.Position = UDim2.new(0, 8, 0, 0)
 	desc.BackgroundTransparency = 1
-	desc.Text = minutes .. " min: " .. milestone.currency .. "💰"
-	if milestone.freeEgg then
-		desc.Text = desc.Text .. " + 🥚"
-	end
-	if milestone.luckBoost and milestone.luckBoost > 0 then
-		desc.Text = desc.Text .. " + 🍀"
-	end
+	desc.Text = minutes .. " min: ..."
 	desc.TextColor3 = Color3.fromRGB(200, 200, 220)
 	desc.TextSize = 11
 	desc.Font = Enum.Font.Gotham
@@ -131,7 +126,7 @@ for i, milestone in ipairs(Config.SESSION_MILESTONES) do
 		ClaimSessionReward:FireServer(i)
 	end)
 
-	milestoneFrames[i] = { row = row, btn = claimBtn }
+	milestoneFrames[i] = { row = row, btn = claimBtn, desc = desc }
 end
 
 -- Start collapsed by default so it doesn't cover the egg inventory panel
@@ -151,7 +146,9 @@ toggleBtn.MouseButton1Click:Connect(function()
 			mf.row.Visible = false
 		end
 	else
-		frame.Size = UDim2.new(0, 250, 0, 160)
+		-- Needs enough height for N milestones
+		local expandedHeight = 60 + (#Config.SESSION_MILESTONES * 44)
+		frame.Size = UDim2.new(0, 250, 0, expandedHeight)
 		toggleBtn.Text = "-"
 		timerLabel.Visible = true
 		for _, mf in ipairs(milestoneFrames) do
@@ -180,6 +177,14 @@ task.spawn(function()
 			local minutes = math.floor(elapsed / 60)
 			local seconds = math.floor(elapsed % 60)
 			timerLabel.Text = string.format("Time: %d:%02d", minutes, seconds)
+			
+			local incomePerMinute = 0
+			if cachedData.workers then
+				local ticksPerMinute = 60 / Config.INCOME_TICK_SECONDS
+				for _, worker in ipairs(cachedData.workers) do
+					incomePerMinute = incomePerMinute + (Config.INCOME_PER_TIER[worker.tier] or 0) * ticksPerMinute
+				end
+			end
 
 			-- Update milestone buttons
 			for i, milestone in ipairs(Config.SESSION_MILESTONES) do
@@ -202,6 +207,16 @@ task.spawn(function()
 						mf.btn.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
 						mf.btn.TextColor3 = Color3.fromRGB(180, 180, 180)
 					end
+					
+					local currentReward = (milestone.flatBase or 0) + (incomePerMinute * (milestone.minutesMultiplier or 0))
+					local descText = string.format("%d min: %d💰", math.floor(milestone.time / 60), currentReward)
+					if milestone.freeEgg then
+						descText = descText .. " + 🥚"
+					end
+					if milestone.luckBoost and milestone.luckBoost > 0 then
+						descText = descText .. " + 🍀"
+					end
+					mf.desc.Text = descText
 				end
 			end
 		end

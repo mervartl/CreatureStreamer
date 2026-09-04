@@ -78,4 +78,14 @@ remotesRef.Name = "RemotesRef"
 remotesRef.Value = Remotes
 remotesRef.Parent = stateFolder
 
-print("[Client] Creature Streamer client initialized, waiting for server data...")
+print("[Client] Creature Streamer client initialized, requesting initial server data...")
+
+-- Explicitly request data once UI is hooked up to avoid race condition
+task.spawn(function()
+	local RequestSyncRemote = Remotes:WaitForChild("RequestSync")
+	local initialData = RequestSyncRemote:InvokeServer()
+	if initialData then
+		ClientState.data = initialData
+		dataChangedEvent:Fire(initialData)
+	end
+end)

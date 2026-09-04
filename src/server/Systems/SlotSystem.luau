@@ -12,7 +12,8 @@ local SlotSystem = {}
 --- Formula: BASE_COST * SCALE ^ (currentCap - initialCap)
 local function calculateCost(baseCost: number, costScale: number, currentCap: number, initialCap: number): number
 	local slotsBought = currentCap - initialCap
-	return math.floor(baseCost * (costScale ^ slotsBought))
+	local rawCost = baseCost * (costScale ^ slotsBought)
+	return math.floor(rawCost / 100 + 0.5) * 100
 end
 
 --- Get the cost of the next egg slot expansion.

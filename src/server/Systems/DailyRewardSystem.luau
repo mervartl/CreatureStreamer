@@ -82,17 +82,25 @@ function DailyRewardSystem.claim(player: Player)
 
 	-- Get reward for this day (cycle through the table)
 	local rewardIndex = ((data.dailyStreak - 1) % #Config.DAILY_REWARDS) + 1
-	local reward = Config.DAILY_REWARDS[rewardIndex]
+	local rewardConfig = Config.DAILY_REWARDS[rewardIndex]
 
-	-- Award currency
-	if reward.currency and reward.currency > 0 then
-		CurrencySystem.addCurrency(player, reward.currency)
+	-- Calculate total passive income
+	local totalIncome = 0
+	for _, worker in ipairs(data.workers) do
+		totalIncome = totalIncome + (Config.INCOME_PER_TIER[worker.tier] or 0)
+	end
+
+	-- Award currency (hybrid formula)
+	local rewardCurrency = rewardConfig.flatBase + (totalIncome * rewardConfig.minutesMultiplier)
+	
+	if rewardCurrency > 0 then
+		CurrencySystem.addCurrency(player, rewardCurrency)
 	end
 
 	return true, {
 		day = data.dailyStreak,
 		rewardIndex = rewardIndex,
-		currency = reward.currency or 0,
+		currency = rewardCurrency,
 	}
 end
 

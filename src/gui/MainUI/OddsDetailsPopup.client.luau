@@ -161,12 +161,16 @@ local function renderOdds(data)
 
 	-- Calculate effective luck
 	local luck = Config.BASE_LUCK
+	local ceilingLevel = 0
+	local floorLevel = 0
 	if data then
 		luck = data.luck or Config.BASE_LUCK
 		if data.hasLuckPass then
 			luck = luck * Config.LUCK_PASS_MULTIPLIER
 		end
 		luck = luck + (data.sessionLuckBoost or 0)
+		ceilingLevel = data.ceilingLevel or 0
+		floorLevel = data.floorLevel or 0
 
 		luckLabel.Text = string.format("Current Luck: %.1fx", luck)
 		passLabel.Text = data.hasLuckPass
@@ -177,8 +181,8 @@ local function renderOdds(data)
 			or Color3.fromRGB(160, 160, 180)
 	end
 
-	-- Get weights with current luck
-	local weights = RarityUtil.getEffectiveWeights(luck)
+	-- Get weights with current luck, ceiling, and floor
+	local weights = RarityUtil.getEffectiveWeights(luck, ceilingLevel, floorLevel)
 
 	-- Sort by tier ascending
 	local sorted = {}

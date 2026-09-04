@@ -15,9 +15,14 @@ local SellEggRemote = Remotes:WaitForChild("SellEgg")
 local AssignEggToJobRemote = Remotes:WaitForChild("AssignEggToJob")
 local SellWorkerRemote = Remotes:WaitForChild("SellWorker")
 local BuySlotRemote = Remotes:WaitForChild("BuySlot")
+local BuyUpgradeRemote = Remotes:WaitForChild("BuyUpgrade")
 local ClaimSessionRewardRemote = Remotes:WaitForChild("ClaimSessionReward")
 local ClaimDailyRewardRemote = Remotes:WaitForChild("ClaimDailyReward")
 local SyncPlayerDataRemote = Remotes:WaitForChild("SyncPlayerData")
+
+local RequestSyncRemote = Instance.new("RemoteFunction")
+RequestSyncRemote.Name = "RequestSync"
+RequestSyncRemote.Parent = Remotes
 
 -- System modules
 local DataStoreManager = require(script.Systems.DataStoreManager)
@@ -27,10 +32,12 @@ local JobAssignmentSystem = require(script.Systems.JobAssignmentSystem)
 local CurrencySystem = require(script.Systems.CurrencySystem)
 local LuckSystem = require(script.Systems.LuckSystem)
 local SlotSystem = require(script.Systems.SlotSystem)
+local UpgradeSystem = require(script.Systems.UpgradeSystem)
 local SessionRewardSystem = require(script.Systems.SessionRewardSystem)
 local DailyRewardSystem = require(script.Systems.DailyRewardSystem)
 local MarketplaceHandler = require(script.Systems.MarketplaceHandler)
 local PlotSystem = require(script.Systems.PlotSystem)
+local DebugSystem = require(script.Systems.DebugSystem)
 
 local Config = require(ReplicatedStorage.Shared.Config)
 
@@ -99,6 +106,15 @@ BuySlotRemote.OnServerInvoke = function(player, slotType)
 	return success, result
 end
 
+BuyUpgradeRemote.OnServerInvoke = function(player, upgradeType)
+	if type(upgradeType) ~= "string" then
+		return false, "Invalid upgrade type"
+	end
+	local success, result = UpgradeSystem.buyUpgrade(player, upgradeType)
+	syncToClient(player)
+	return success, result
+end
+
 ClaimSessionRewardRemote.OnServerEvent:Connect(function(player, milestoneIndex)
 	if type(milestoneIndex) ~= "number" then
 		return
@@ -111,6 +127,10 @@ ClaimDailyRewardRemote.OnServerEvent:Connect(function(player)
 	DailyRewardSystem.claim(player)
 	syncToClient(player)
 end)
+
+RequestSyncRemote.OnServerInvoke = function(player)
+	return DataStoreManager.getClientData(player)
+end
 
 --------------------------------------------------------------------------------
 -- Player lifecycle
@@ -136,6 +156,9 @@ Players.PlayerAdded:Connect(function(player)
 		-- Client will see this in the synced data and show popup
 		-- (eligibility is determined client-side from the synced date)
 	end
+
+	-- Initialize debug commands for this player
+	DebugSystem.init(player, syncToClient)
 
 	print("[Server] Player loaded:", player.Name, "| Currency:", data.currency, "| Eggs:", #data.eggs, "| Workers:", #data.workers)
 end)

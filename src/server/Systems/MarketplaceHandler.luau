@@ -29,40 +29,71 @@ function MarketplaceHandler.init()
 			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
 
-		local productId = receiptInfo.ProductId
-
-		if productId == Config.VIEWERS_PACK_PRODUCT_ID then
-			-- Viewers Pack: instant currency injection
-			CurrencySystem.addCurrency(player, Config.VIEWERS_PACK_AMOUNT)
-			-- Sync to client
-			local SyncPlayerData = game.ReplicatedStorage.Remotes:FindFirstChild("SyncPlayerData")
-			if SyncPlayerData then
-				SyncPlayerData:FireClient(player, DataStoreManager.getClientData(player))
-			end
-			return Enum.ProductPurchaseDecision.PurchaseGranted
-
-		elseif productId == Config.INSTANT_CLAIM_PRODUCT_ID then
-			-- Instant Claim: skip session timer — mark all elapsed milestones as claimable
-			-- We do this by setting sessionStartTime far enough back
-			local longestMilestone = 0
-			for _, milestone in ipairs(Config.SESSION_MILESTONES) do
-				if milestone.time > longestMilestone then
-					longestMilestone = milestone.time
-				end
-			end
-			data.sessionStartTime = os.clock() - longestMilestone - 1
-
-			-- Sync to client
-			local SyncPlayerData = game.ReplicatedStorage.Remotes:FindFirstChild("SyncPlayerData")
-			if SyncPlayerData then
-				SyncPlayerData:FireClient(player, DataStoreManager.getClientData(player))
-			end
+		local purchaseId = receiptInfo.PurchaseId
+		-- Idempotency check: if already processed, return Granted immediately
+		if data.purchaseHistory[purchaseId] then
 			return Enum.ProductPurchaseDecision.PurchaseGranted
 		end
 
-		-- Unknown product
-		warn("[MarketplaceHandler] Unknown product ID: " .. tostring(productId))
-		return Enum.ProductPurchaseDecision.NotProcessedYet
+		local productId = receiptInfo.ProductId
+		local granted = false
+
+		-- Viewers Pack: instant currency injection
+		for _, pack in pairs(Config.VIEWERS_PACK_PRODUCTS) do
+			if productId == pack.id then
+				CurrencySystem.addCurrency(player, pack.amount)
+				granted = true
+				break
+			end
+		end
+
+		-- Instant Claim: skip the currently pending session timer
+		if productId == Config.INSTANT_CLAIM_PRODUCT_ID then
+			local pendingMilestone = nil
+			for i, milestone in ipairs(Config.SESSION_MILESTONES) do
+				if not data.sessionRewardsClaimed[i] then
+					pendingMilestone = milestone
+					break
+				end
+			end
+			
+			if pendingMilestone then
+				-- Fast-forward sessionStartTime exactly to the pending milestone
+				local timeNeeded = pendingMilestone.time
+				data.sessionStartTime = os.clock() - timeNeeded
+				granted = true
+			else
+				-- If no pending milestone, it means all are claimed.
+				-- We should ideally prevent purchase, but if it happens, we grant it.
+				granted = true
+			end
+		end
+
+		if not granted then
+			warn("[MarketplaceHandler] Unknown product ID: " .. tostring(productId))
+			return Enum.ProductPurchaseDecision.NotProcessedYet
+		end
+
+		-- Mark as granted in history
+		data.purchaseHistory[purchaseId] = true
+
+		-- Force a synchronous save to ensure idempotency across crashes
+		local saveSuccess = DataStoreManager.savePlayerData(player)
+		if not saveSuccess then
+			-- If saving failed, revert the local idempotency state (currency remains locally for the session, 
+			-- but we let Roblox retry later. Or if we want strict safety, we don't grant locally until save succeeds.
+			-- Given Roblox's nature, best to let it retry).
+			data.purchaseHistory[purchaseId] = nil
+			return Enum.ProductPurchaseDecision.NotProcessedYet
+		end
+
+		-- Sync to client after successful save
+		local SyncPlayerData = game.ReplicatedStorage.Remotes:FindFirstChild("SyncPlayerData")
+		if SyncPlayerData then
+			SyncPlayerData:FireClient(player, DataStoreManager.getClientData(player))
+		end
+
+		return Enum.ProductPurchaseDecision.PurchaseGranted
 	end
 
 	-- Handle Game Pass purchase completion (one-time)

@@ -17,6 +17,7 @@ local dataChangedEvent = stateFolder:WaitForChild("DataChanged")
 local Remotes = stateFolder:WaitForChild("RemotesRef").Value
 
 local BuySlot = Remotes:WaitForChild("BuySlot")
+local BuyUpgrade = Remotes:WaitForChild("BuyUpgrade")
 
 local mainUI = playerGui:WaitForChild("MainUI")
 local ScreenManager = require(script.Parent:WaitForChild("ScreenManager"))
@@ -84,6 +85,10 @@ local listLayout = Instance.new("UIListLayout")
 listLayout.Padding = UDim.new(0, 8)
 listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 listLayout.Parent = contentFrame
+
+listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	contentFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 20)
+end)
 
 --------------------------------------------------------------------------------
 -- Helper: create a shop item row
@@ -184,13 +189,59 @@ local jobSlotRow = createShopItem(
 	end
 )
 
--- 3. 2x Luck Game Pass
-createShopItem(
+-- 3. Ceiling Upgrade
+local ceilingUpgradeRow = createShopItem(
 	contentFrame,
 	3,
+	"⬆️ Ceiling Upgrade",
+	"Unlock higher tiers from hatching",
+	"Buy",
+	Color3.fromRGB(150, 80, 150),
+	function()
+		if debounce then return end
+		debounce = true
+		BuyUpgrade:InvokeServer("ceiling")
+		task.wait(0.5)
+		debounce = false
+	end
+)
+
+-- 4. Floor Upgrade
+local floorUpgradeRow = createShopItem(
+	contentFrame,
+	4,
+	"⬇️ Floor Upgrade",
+	"Remove lowest tier from hatching",
+	"Buy",
+	Color3.fromRGB(150, 80, 80),
+	function()
+		if debounce then return end
+		debounce = true
+		BuyUpgrade:InvokeServer("floor")
+		task.wait(0.5)
+		debounce = false
+	end
+)
+
+local function setRobuxPrice(btn, id, infoType)
+	if not btn or not id or id == 0 then return end
+	task.spawn(function()
+		local success, info = pcall(function()
+			return MarketplaceService:GetProductInfo(id, infoType)
+		end)
+		if success and info and info.PriceInRobux then
+			btn.Text = "R$ " .. tostring(info.PriceInRobux)
+		end
+	end)
+end
+
+-- 5. 2x Luck Game Pass
+local luckPassRow = createShopItem(
+	contentFrame,
+	5,
 	"🍀 2x Luck (Permanent)",
 	"Doubles hatch odds for rarer eggs",
-	"R$ Buy",
+	"R$ ...",
 	Color3.fromRGB(200, 160, 40),
 	function()
 		if Config.LUCK_GAMEPASS_ID ~= 0 then
@@ -200,31 +251,72 @@ createShopItem(
 		end
 	end
 )
+setRobuxPrice(luckPassRow:FindFirstChild("BuyButton"), Config.LUCK_GAMEPASS_ID, Enum.InfoType.GamePass)
 
--- 4. Viewers Pack (Dev Product)
-createShopItem(
+-- 6. Small Viewers Pack
+local smallPackRow = createShopItem(
 	contentFrame,
-	4,
-	"💰 Viewers Pack",
-	Config.VIEWERS_PACK_AMOUNT .. " Viewers instantly",
-	"R$ Buy",
+	6,
+	"💰 Small Viewers Pack",
+	Config.VIEWERS_PACK_PRODUCTS.Small.amount .. " Viewers instantly",
+	"R$ ...",
 	Color3.fromRGB(100, 180, 60),
 	function()
-		if Config.VIEWERS_PACK_PRODUCT_ID ~= 0 then
-			MarketplaceService:PromptProductPurchase(player, Config.VIEWERS_PACK_PRODUCT_ID)
+		local id = Config.VIEWERS_PACK_PRODUCTS.Small.id
+		if id ~= 0 then
+			MarketplaceService:PromptProductPurchase(player, id)
 		else
-			warn("[Shop] Viewers Pack Product ID not configured!")
+			warn("[Shop] Small Viewers Pack ID not configured!")
 		end
 	end
 )
+setRobuxPrice(smallPackRow:FindFirstChild("BuyButton"), Config.VIEWERS_PACK_PRODUCTS.Small.id, Enum.InfoType.Product)
 
--- 5. Instant Claim (Dev Product)
-createShopItem(
+-- 7. Medium Viewers Pack
+local mediumPackRow = createShopItem(
 	contentFrame,
-	5,
+	7,
+	"💰 Medium Viewers Pack",
+	Config.VIEWERS_PACK_PRODUCTS.Medium.amount .. " Viewers instantly",
+	"R$ ...",
+	Color3.fromRGB(110, 190, 70),
+	function()
+		local id = Config.VIEWERS_PACK_PRODUCTS.Medium.id
+		if id ~= 0 then
+			MarketplaceService:PromptProductPurchase(player, id)
+		else
+			warn("[Shop] Medium Viewers Pack ID not configured!")
+		end
+	end
+)
+setRobuxPrice(mediumPackRow:FindFirstChild("BuyButton"), Config.VIEWERS_PACK_PRODUCTS.Medium.id, Enum.InfoType.Product)
+
+-- 8. Mega Viewers Pack
+local megaPackRow = createShopItem(
+	contentFrame,
+	8,
+	"💎 Mega Viewers Pack",
+	Config.VIEWERS_PACK_PRODUCTS.Mega.amount .. " Viewers instantly",
+	"R$ ...",
+	Color3.fromRGB(120, 200, 80),
+	function()
+		local id = Config.VIEWERS_PACK_PRODUCTS.Mega.id
+		if id ~= 0 then
+			MarketplaceService:PromptProductPurchase(player, id)
+		else
+			warn("[Shop] Mega Viewers Pack ID not configured!")
+		end
+	end
+)
+setRobuxPrice(megaPackRow:FindFirstChild("BuyButton"), Config.VIEWERS_PACK_PRODUCTS.Mega.id, Enum.InfoType.Product)
+
+-- 9. Instant Claim (Dev Product)
+local instantClaimRow = createShopItem(
+	contentFrame,
+	9,
 	"⏩ Instant Claim",
 	"Skip session timer, claim rewards now",
-	"R$ Buy",
+	"R$ ...",
 	Color3.fromRGB(140, 80, 200),
 	function()
 		if Config.INSTANT_CLAIM_PRODUCT_ID ~= 0 then
@@ -234,6 +326,7 @@ createShopItem(
 		end
 	end
 )
+setRobuxPrice(instantClaimRow:FindFirstChild("BuyButton"), Config.INSTANT_CLAIM_PRODUCT_ID, Enum.InfoType.Product)
 
 --------------------------------------------------------------------------------
 -- Update slot costs dynamically
@@ -246,7 +339,8 @@ local function updateCosts(data)
 
 	-- Egg slot cost
 	local eggSlotsBought = data.eggSlotsCap - Config.EGG_SLOTS_INITIAL
-	local eggCost = math.floor(Config.EGG_SLOT_BASE_COST * (Config.EGG_SLOT_COST_SCALE ^ eggSlotsBought))
+	local rawEggCost = Config.EGG_SLOT_BASE_COST * (Config.EGG_SLOT_COST_SCALE ^ eggSlotsBought)
+	local eggCost = math.floor(rawEggCost / 100 + 0.5) * 100
 	local eggDesc = eggSlotRow:FindFirstChild("Desc")
 	local eggBtn = eggSlotRow:FindFirstChild("BuyButton")
 	if eggDesc then
@@ -263,7 +357,8 @@ local function updateCosts(data)
 
 	-- Job slot cost
 	local jobSlotsBought = data.jobSlotsCap - Config.JOB_SLOTS_INITIAL
-	local jobCost = math.floor(Config.JOB_SLOT_BASE_COST * (Config.JOB_SLOT_COST_SCALE ^ jobSlotsBought))
+	local rawJobCost = Config.JOB_SLOT_BASE_COST * (Config.JOB_SLOT_COST_SCALE ^ jobSlotsBought)
+	local jobCost = math.floor(rawJobCost / 100 + 0.5) * 100
 	local jobDesc = jobSlotRow:FindFirstChild("Desc")
 	local jobBtn = jobSlotRow:FindFirstChild("BuyButton")
 	if jobDesc then
@@ -275,6 +370,46 @@ local function updateCosts(data)
 			jobBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
 		else
 			jobBtn.Text = jobCost .. " 👁"
+		end
+	end
+	-- Ceiling Upgrade cost
+	local ceilingDesc = ceilingUpgradeRow:FindFirstChild("Desc")
+	local ceilingBtn = ceilingUpgradeRow:FindFirstChild("BuyButton")
+	local currentMaxTier = Config.BASE_MAX_HATCH_TIER + (data.ceilingLevel or 0)
+	
+	if currentMaxTier >= Config.TIER_MAX then
+		if ceilingDesc then ceilingDesc.Text = "Max ceiling reached" end
+		if ceilingBtn then
+			ceilingBtn.Text = "MAX"
+			ceilingBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+		end
+	else
+		local ceilingCost = Config.getCumulativeMergeCost(currentMaxTier) * Config.CEILING_UPGRADE_MULTIPLIER
+		if ceilingDesc then ceilingDesc.Text = "Max Tier: +" .. (data.ceilingLevel or 0) end
+		if ceilingBtn then
+			ceilingBtn.Text = ceilingCost .. " 👁"
+			ceilingBtn.BackgroundColor3 = Color3.fromRGB(150, 80, 150)
+		end
+	end
+
+	-- Floor Upgrade cost
+	local floorDesc = floorUpgradeRow:FindFirstChild("Desc")
+	local floorBtn = floorUpgradeRow:FindFirstChild("BuyButton")
+	
+	local currentPoolSize = (currentMaxTier - (data.floorLevel or 0)) + 1
+	if currentPoolSize <= Config.MIN_TABLE_SIZE then
+		if floorDesc then floorDesc.Text = "Cannot narrow pool further" end
+		if floorBtn then
+			floorBtn.Text = "MAX"
+			floorBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+		end
+	else
+		local rawFloorCost = Config.FLOOR_UPGRADE_BASE_COST * (Config.FLOOR_UPGRADE_COST_SCALE ^ (data.floorLevel or 0))
+		local floorCost = math.floor(rawFloorCost / 100 + 0.5) * 100
+		if floorDesc then floorDesc.Text = "Min Tier: +" .. (data.floorLevel or 0) end
+		if floorBtn then
+			floorBtn.Text = floorCost .. " 👁"
+			floorBtn.BackgroundColor3 = Color3.fromRGB(150, 80, 80)
 		end
 	end
 end

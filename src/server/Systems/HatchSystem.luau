@@ -34,9 +34,9 @@ function HatchSystem.hatch(player: Player)
 	-- Deduct cost
 	data.currency = data.currency - Config.HATCH_COST
 
-	-- Roll starting tier using player's effective luck
+	-- Roll starting tier using player's effective luck, ceiling, and floor
 	local luck = LuckSystem.getEffectiveLuck(player)
-	local tier = RarityUtil.rollTier(luck)
+	local tier = RarityUtil.rollTier(luck, data.ceilingLevel, data.floorLevel)
 
 	-- Create the egg
 	local newEgg = {
