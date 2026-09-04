@@ -129,7 +129,13 @@ ClaimDailyRewardRemote.OnServerEvent:Connect(function(player)
 end)
 
 RequestSyncRemote.OnServerInvoke = function(player)
-	return DataStoreManager.getClientData(player)
+	local data = DataStoreManager.getClientData(player)
+	-- If DataStore is still loading this player's data, wait for it
+	while not data and player.Parent do
+		task.wait(0.2)
+		data = DataStoreManager.getClientData(player)
+	end
+	return data
 end
 
 --------------------------------------------------------------------------------

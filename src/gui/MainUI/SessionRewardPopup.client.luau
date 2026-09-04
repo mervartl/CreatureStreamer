@@ -96,18 +96,53 @@ for i, milestone in ipairs(Config.SESSION_MILESTONES) do
 	Instance.new("UICorner", row).CornerRadius = UDim.new(0, 6)
 
 	local minutes = math.floor(milestone.time / 60)
-	local desc = Instance.new("TextLabel")
-	desc.Name = "Desc"
-	desc.Size = UDim2.new(0.55, 0, 1, 0)
-	desc.Position = UDim2.new(0, 8, 0, 0)
-	desc.BackgroundTransparency = 1
-	desc.Text = minutes .. " min: ..."
-	desc.TextColor3 = Color3.fromRGB(200, 200, 220)
-	desc.TextSize = 11
-	desc.Font = Enum.Font.Gotham
-	desc.TextXAlignment = Enum.TextXAlignment.Left
-	desc.TextWrapped = true
-	desc.Parent = row
+	local descContainer = Instance.new("Frame")
+	descContainer.Name = "DescContainer"
+	descContainer.Size = UDim2.new(0.55, 0, 1, 0)
+	descContainer.Position = UDim2.new(0, 8, 0, 0)
+	descContainer.BackgroundTransparency = 1
+	descContainer.Parent = row
+
+	local listLayout = Instance.new("UIListLayout")
+	listLayout.FillDirection = Enum.FillDirection.Horizontal
+	listLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	listLayout.Padding = UDim.new(0, 4)
+	listLayout.Parent = descContainer
+
+	local desc1 = Instance.new("TextLabel")
+	desc1.Name = "Desc1"
+	desc1.Size = UDim2.new(0, 0, 1, 0)
+	desc1.AutomaticSize = Enum.AutomaticSize.X
+	desc1.BackgroundTransparency = 1
+	desc1.Text = minutes .. " min: ..."
+	desc1.TextColor3 = Color3.fromRGB(200, 200, 220)
+	desc1.TextSize = 11
+	desc1.Font = Enum.Font.Gotham
+	desc1.TextXAlignment = Enum.TextXAlignment.Left
+	desc1.LayoutOrder = 1
+	desc1.Parent = descContainer
+
+	local icon = Instance.new("ImageLabel")
+	icon.Name = "CurrencyIcon"
+	icon.Size = UDim2.new(0, 14, 0, 14)
+	icon.BackgroundTransparency = 1
+	icon.Image = "rbxassetid://140422618178848"
+	icon.LayoutOrder = 2
+	icon.Parent = descContainer
+
+	local desc2 = Instance.new("TextLabel")
+	desc2.Name = "Desc2"
+	desc2.Size = UDim2.new(0, 0, 1, 0)
+	desc2.AutomaticSize = Enum.AutomaticSize.X
+	desc2.BackgroundTransparency = 1
+	desc2.Text = ""
+	desc2.TextColor3 = Color3.fromRGB(200, 200, 220)
+	desc2.TextSize = 11
+	desc2.Font = Enum.Font.Gotham
+	desc2.TextXAlignment = Enum.TextXAlignment.Left
+	desc2.LayoutOrder = 3
+	desc2.Parent = descContainer
 
 	local claimBtn = Instance.new("TextButton")
 	claimBtn.Name = "ClaimBtn"
@@ -126,7 +161,7 @@ for i, milestone in ipairs(Config.SESSION_MILESTONES) do
 		ClaimSessionReward:FireServer(i)
 	end)
 
-	milestoneFrames[i] = { row = row, btn = claimBtn, desc = desc }
+	milestoneFrames[i] = { row = row, btn = claimBtn, desc1 = desc1, desc2 = desc2 }
 end
 
 -- Start collapsed by default so it doesn't cover the egg inventory panel
@@ -166,6 +201,13 @@ local cachedData = nil
 dataChangedEvent.Event:Connect(function(data)
 	cachedData = data
 end)
+
+-- State Polling on Init
+local getStateFunc = stateFolder:WaitForChild("GetState")
+local initialData = getStateFunc:Invoke()
+if initialData then
+	cachedData = initialData
+end
 
 -- Live timer update loop
 task.spawn(function()
@@ -209,14 +251,16 @@ task.spawn(function()
 					end
 					
 					local currentReward = (milestone.flatBase or 0) + (incomePerMinute * (milestone.minutesMultiplier or 0))
-					local descText = string.format("%d min: %d💰", math.floor(milestone.time / 60), currentReward)
+					mf.desc1.Text = string.format("%d min: %d ", math.floor(milestone.time / 60), currentReward)
+					
+					local desc2Text = ""
 					if milestone.freeEgg then
-						descText = descText .. " + 🥚"
+						desc2Text = desc2Text .. " + 🥚"
 					end
 					if milestone.luckBoost and milestone.luckBoost > 0 then
-						descText = descText .. " + 🍀"
+						desc2Text = desc2Text .. " + 🍀"
 					end
-					mf.desc.Text = descText
+					mf.desc2.Text = desc2Text
 				end
 			end
 		end

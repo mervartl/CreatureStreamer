@@ -55,7 +55,7 @@ title.Name = "Title"
 title.Size = UDim2.new(1, 0, 0, 44)
 title.Position = UDim2.new(0, 0, 0, 6)
 title.BackgroundTransparency = 1
-title.Text = "📺 Streaming Jobs"
+title.Text = "🎙️ Streaming Jobs"
 title.TextColor3 = Color3.fromRGB(100, 200, 255)
 title.TextSize = 22
 title.Font = Enum.Font.GothamBold
@@ -167,12 +167,20 @@ local function renderWorkers(data)
 		incLabel.Size = UDim2.new(0.6, -16, 0, 20)
 		incLabel.Position = UDim2.new(0, 16, 0, 36)
 		incLabel.BackgroundTransparency = 1
-		incLabel.Text = "📈 " .. income .. "/min"
+		incLabel.Text = "      " .. income .. "/min"
 		incLabel.TextColor3 = Color3.fromRGB(140, 200, 140)
 		incLabel.TextSize = currentLayout.incSize
 		incLabel.Font = Enum.Font.Gotham
 		incLabel.TextXAlignment = Enum.TextXAlignment.Left
 		incLabel.Parent = row
+
+		local icon = Instance.new("ImageLabel")
+		icon.Size = UDim2.new(0, 16, 0, 16)
+		icon.AnchorPoint = Vector2.new(0, 0.5)
+		icon.Position = UDim2.new(0, 0, 0.5, 0)
+		icon.BackgroundTransparency = 1
+		icon.Image = "rbxassetid://140422618178848"
+		icon.Parent = incLabel
 
 		-- Sell button
 		local sellBtn = Instance.new("TextButton")
@@ -235,6 +243,14 @@ dataChangedEvent.Event:Connect(function(data)
 	cachedData = data
 	renderWorkers(data)
 end)
+
+-- State Polling on Init
+local getStateFunc = stateFolder:WaitForChild("GetState")
+local initialData = getStateFunc:Invoke()
+if initialData then
+	cachedData = initialData
+	renderWorkers(initialData)
+end
 
 proximityEvent.Event:Connect(function(isNear)
 	-- MobileNavBar handles showing the panel.

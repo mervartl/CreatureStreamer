@@ -140,6 +140,16 @@ local function createShopItem(parent, order, titleText, descText, btnText, btnCo
 	btn.Parent = row
 	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
 
+	local icon = Instance.new("ImageLabel")
+	icon.Name = "CurrencyIcon"
+	icon.Size = UDim2.new(0, 16, 0, 16)
+	icon.AnchorPoint = Vector2.new(1, 0.5)
+	icon.Position = UDim2.new(1, -6, 0.5, 0)
+	icon.BackgroundTransparency = 1
+	icon.Image = "rbxassetid://140422618178848"
+	icon.Visible = false -- Will be turned on by updateCosts if not MAX
+	icon.Parent = btn
+
 	btn.MouseButton1Click:Connect(onClick)
 
 	return row
@@ -174,7 +184,7 @@ local eggSlotRow = createShopItem(
 local jobSlotRow = createShopItem(
 	contentFrame,
 	2,
-	"📺 +1 Job Slot",
+	"🎙️ +1 Job Slot",
 	"Expand streaming jobs",
 	"Buy",
 	Color3.fromRGB(80, 120, 180),
@@ -350,8 +360,10 @@ local function updateCosts(data)
 		if data.eggSlotsCap >= Config.EGG_SLOTS_MAX then
 			eggBtn.Text = "MAX"
 			eggBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+			if eggBtn:FindFirstChild("CurrencyIcon") then eggBtn.CurrencyIcon.Visible = false end
 		else
-			eggBtn.Text = eggCost .. " 👁"
+			eggBtn.Text = tostring(eggCost) .. "    "
+			if eggBtn:FindFirstChild("CurrencyIcon") then eggBtn.CurrencyIcon.Visible = true end
 		end
 	end
 
@@ -368,8 +380,10 @@ local function updateCosts(data)
 		if data.jobSlotsCap >= Config.JOB_SLOTS_MAX then
 			jobBtn.Text = "MAX"
 			jobBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+			if jobBtn:FindFirstChild("CurrencyIcon") then jobBtn.CurrencyIcon.Visible = false end
 		else
-			jobBtn.Text = jobCost .. " 👁"
+			jobBtn.Text = tostring(jobCost) .. "    "
+			if jobBtn:FindFirstChild("CurrencyIcon") then jobBtn.CurrencyIcon.Visible = true end
 		end
 	end
 	-- Ceiling Upgrade cost
@@ -387,8 +401,9 @@ local function updateCosts(data)
 		local ceilingCost = Config.getCumulativeMergeCost(currentMaxTier) * Config.CEILING_UPGRADE_MULTIPLIER
 		if ceilingDesc then ceilingDesc.Text = "Max Tier: +" .. (data.ceilingLevel or 0) end
 		if ceilingBtn then
-			ceilingBtn.Text = ceilingCost .. " 👁"
+			ceilingBtn.Text = tostring(ceilingCost) .. "    "
 			ceilingBtn.BackgroundColor3 = Color3.fromRGB(150, 80, 150)
+			if ceilingBtn:FindFirstChild("CurrencyIcon") then ceilingBtn.CurrencyIcon.Visible = true end
 		end
 	end
 
@@ -408,8 +423,9 @@ local function updateCosts(data)
 		local floorCost = math.floor(rawFloorCost / 100 + 0.5) * 100
 		if floorDesc then floorDesc.Text = "Min Tier: +" .. (data.floorLevel or 0) end
 		if floorBtn then
-			floorBtn.Text = floorCost .. " 👁"
+			floorBtn.Text = tostring(floorCost) .. "    "
 			floorBtn.BackgroundColor3 = Color3.fromRGB(150, 80, 80)
+			if floorBtn:FindFirstChild("CurrencyIcon") then floorBtn.CurrencyIcon.Visible = true end
 		end
 	end
 end
@@ -417,6 +433,13 @@ end
 dataChangedEvent.Event:Connect(function(data)
 	updateCosts(data)
 end)
+
+-- State Polling on Init
+local getStateFunc = stateFolder:WaitForChild("GetState")
+local initialData = getStateFunc:Invoke()
+if initialData then
+	updateCosts(initialData)
+end
 
 -- Always-visible shop toggle button in the top-right corner
 local shopToggle = Instance.new("TextButton")

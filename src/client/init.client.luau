@@ -66,6 +66,14 @@ local dataChangedEvent = Instance.new("BindableEvent")
 dataChangedEvent.Name = "DataChanged"
 dataChangedEvent.Parent = stateFolder
 
+-- Create a BindableFunction so UI modules can actively pull current data
+local getStateFunc = Instance.new("BindableFunction")
+getStateFunc.Name = "GetState"
+getStateFunc.OnInvoke = function()
+	return ClientState.data
+end
+getStateFunc.Parent = stateFolder
+
 -- Forward SyncPlayerData to the BindableEvent so GUI scripts can listen
 SyncPlayerDataRemote.OnClientEvent:Connect(function(newData)
 	ClientState.data = newData

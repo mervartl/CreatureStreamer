@@ -43,12 +43,11 @@ uiScale.Parent = hud
 
 Instance.new("UICorner", hud).CornerRadius = UDim.new(0, 10)
 
-local currencyIcon = Instance.new("TextLabel")
-currencyIcon.Size = UDim2.new(0, 30, 1, 0)
-currencyIcon.Position = UDim2.new(0, 10, 0, 0)
+local currencyIcon = Instance.new("ImageLabel")
+currencyIcon.Size = UDim2.new(0, 26, 0, 26)
+currencyIcon.Position = UDim2.new(0, 10, 0.5, -13)
 currencyIcon.BackgroundTransparency = 1
-currencyIcon.Text = "👁"
-currencyIcon.TextSize = 24
+currencyIcon.Image = "rbxassetid://140422618178848"
 currencyIcon.ZIndex = 21
 currencyIcon.Parent = hud
 
@@ -70,7 +69,7 @@ slotsInfo.Name = "SlotsInfo"
 slotsInfo.Size = UDim2.new(0, 150, 1, 0)
 slotsInfo.Position = UDim2.new(1, -260, 0, 0)
 slotsInfo.BackgroundTransparency = 1
-slotsInfo.Text = "🥚 0/10 | 📺 0/2"
+slotsInfo.Text = "🥚 0/10 | 🎙️ 0/2"
 slotsInfo.TextColor3 = Color3.fromRGB(180, 180, 200)
 slotsInfo.TextSize = 14
 slotsInfo.Font = Enum.Font.Gotham
@@ -104,7 +103,7 @@ end)
 -- Update on data change
 --------------------------------------------------------------------------------
 
-dataChangedEvent.Event:Connect(function(data)
+local function updateUI(data)
 	if not data then return end
 
 	-- Format currency with commas
@@ -121,11 +120,20 @@ dataChangedEvent.Event:Connect(function(data)
 	currencyLabel.Text = result
 
 	slotsInfo.Text = string.format(
-		"🥚 %d/%d | 📺 %d/%d",
+		"🥚 %d/%d | 🎙️ %d/%d",
 		#data.eggs, data.eggSlotsCap,
 		#data.workers, data.jobSlotsCap
 	)
-end)
+end
+
+dataChangedEvent.Event:Connect(updateUI)
+
+-- State Polling on Init
+local getStateFunc = stateFolder:WaitForChild("GetState")
+local initialData = getStateFunc:Invoke()
+if initialData then
+	updateUI(initialData)
+end
 
 --------------------------------------------------------------------------------
 -- Responsive Layout

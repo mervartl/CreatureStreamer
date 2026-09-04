@@ -251,6 +251,13 @@ dataChangedEvent.Event:Connect(function(data)
 	end
 end)
 
+-- State Polling on Init
+local getStateFunc = stateFolder:WaitForChild("GetState")
+local initialData = getStateFunc:Invoke()
+if initialData then
+	cachedData = initialData
+end
+
 frame:GetPropertyChangedSignal("Visible"):Connect(function()
 	if frame.Visible then
 		renderOdds(cachedData)

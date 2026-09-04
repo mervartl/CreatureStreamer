@@ -99,7 +99,7 @@ local function makeNavBtn(name, icon, label, dotColor)
 end
 
 local eggBtn = makeNavBtn("EggNavBtn", "🥚", "Vajíčka", DOT_EGG)
-local jobBtn = makeNavBtn("JobNavBtn", "📺", "Jobs",    DOT_JOB)
+local jobBtn = makeNavBtn("JobNavBtn", "🎙️", "Jobs",    DOT_JOB)
 
 --------------------------------------------------------------------------------
 -- Panel state helpers

@@ -223,3 +223,10 @@ end
 dataChangedEvent.Event:Connect(function(data)
 	updateDisplay(data)
 end)
+
+-- State Polling on Init
+local getStateFunc = stateFolder:WaitForChild("GetState")
+local initialData = getStateFunc:Invoke()
+if initialData then
+	updateDisplay(initialData)
+end

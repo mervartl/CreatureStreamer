@@ -57,11 +57,19 @@ local function updatePlotVisuals(data)
 				textBtn.Size = UDim2.new(1, 0, 1, 0)
 				textBtn.BackgroundTransparency = 0.2
 				textBtn.BackgroundColor3 = Color3.fromRGB(30, 25, 40)
-				textBtn.Text = "🔒 Locked\nBuy for " .. price .. " 👁"
+				textBtn.Text = "🔒 Locked\nBuy for " .. price .. "   "
 				textBtn.TextColor3 = Color3.fromRGB(255, 200, 80)
 				textBtn.TextSize = 13
 				textBtn.Font = Enum.Font.GothamBold
 				textBtn.Parent = billboard
+				
+				local icon = Instance.new("ImageLabel")
+				icon.Size = UDim2.new(0, 14, 0, 14)
+				icon.AnchorPoint = Vector2.new(0, 0.5)
+				icon.Position = UDim2.new(0.5, 40, 0.5, 7)
+				icon.BackgroundTransparency = 1
+				icon.Image = "rbxassetid://140422618178848"
+				icon.Parent = textBtn
 				
 				local corner = Instance.new("UICorner")
 				corner.CornerRadius = UDim.new(0, 6)
@@ -79,7 +87,7 @@ local function updatePlotVisuals(data)
 						textBtn.Text = "❌ " .. tostring(result)
 						task.wait(1)
 						-- Update with default text
-						textBtn.Text = "🔒 Locked\nBuy for " .. price .. " 👁"
+						textBtn.Text = "🔒 Locked\nBuy for " .. price .. "   "
 					end
 					
 					debounce = false

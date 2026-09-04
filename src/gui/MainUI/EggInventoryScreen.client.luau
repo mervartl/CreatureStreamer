@@ -144,7 +144,7 @@ assignBtn.Name = "AssignButton"
 assignBtn.Size = UDim2.new(0.32, 0, 1, 0)
 assignBtn.Position = UDim2.new(0.68, 0, 0, 0)
 assignBtn.BackgroundColor3 = Color3.fromRGB(80, 120, 180)
-assignBtn.Text = "📺 Assign"
+assignBtn.Text = "🎙️ Assign"
 assignBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 assignBtn.TextSize = 15
 assignBtn.Font = Enum.Font.GothamBold
@@ -370,7 +370,7 @@ assignBtn.MouseButton1Click:Connect(function()
 		infoLabel.Text = "Assigning to job..."
 		local success, result = AssignEggToJob:InvokeServer(eggId)
 		if success then
-			infoLabel.Text = "📺 Assigned to streaming job!"
+			infoLabel.Text = "🎙️ Assigned to streaming job!"
 			infoLabel.TextColor3 = Color3.fromRGB(100, 180, 255)
 			clearSelection()
 		else
@@ -392,6 +392,13 @@ end)
 dataChangedEvent.Event:Connect(function(data)
 	renderEggs(data)
 end)
+
+-- State Polling on Init
+local getStateFunc = stateFolder:WaitForChild("GetState")
+local initialData = getStateFunc:Invoke()
+if initialData then
+	renderEggs(initialData)
+end
 
 proximityEvent.Event:Connect(function(isNear)
 	-- MobileNavBar handles opening. We only close.
