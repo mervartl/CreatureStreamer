@@ -92,7 +92,7 @@ function DataStoreManager.loadPlayerData(player: Player)
 	end
 
 	-- Reset session-specific fields
-	data.sessionStartTime = os.clock()
+	data.sessionStartTime = workspace:GetServerTimeNow()
 	data.sessionRewardsClaimed = {}
 	data.sessionLuckBoost = 0
 

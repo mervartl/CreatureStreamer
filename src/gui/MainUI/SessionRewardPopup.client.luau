@@ -215,7 +215,7 @@ task.spawn(function()
 		task.wait(1)
 
 		if cachedData and cachedData.sessionStartTime then
-			local elapsed = os.clock() - cachedData.sessionStartTime
+			local elapsed = workspace:GetServerTimeNow() - cachedData.sessionStartTime
 			local minutes = math.floor(elapsed / 60)
 			local seconds = math.floor(elapsed % 60)
 			timerLabel.Text = string.format("Time: %d:%02d", minutes, seconds)

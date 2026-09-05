@@ -22,7 +22,7 @@ function SessionRewardSystem.getClaimableMilestones(player: Player): { number }
 		return {}
 	end
 
-	local elapsed = os.clock() - data.sessionStartTime
+	local elapsed = workspace:GetServerTimeNow() - data.sessionStartTime
 	local claimable = {}
 
 	for i, milestone in ipairs(Config.SESSION_MILESTONES) do
@@ -51,7 +51,7 @@ function SessionRewardSystem.claim(player: Player, milestoneIndex: number)
 	end
 
 	-- Check eligibility
-	local elapsed = os.clock() - data.sessionStartTime
+	local elapsed = workspace:GetServerTimeNow() - data.sessionStartTime
 	if elapsed < milestone.time then
 		return false, "Milestone not yet reached"
 	end

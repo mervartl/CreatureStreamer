@@ -60,7 +60,7 @@ function MarketplaceHandler.init()
 			if pendingMilestone then
 				-- Fast-forward sessionStartTime exactly to the pending milestone
 				local timeNeeded = pendingMilestone.time
-				data.sessionStartTime = os.clock() - timeNeeded
+				data.sessionStartTime = workspace:GetServerTimeNow() - timeNeeded
 				granted = true
 			else
 				-- If no pending milestone, it means all are claimed.
