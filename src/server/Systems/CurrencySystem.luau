@@ -77,8 +77,9 @@ function CurrencySystem.tickPassiveIncome(player: Player): number
 
 	local totalIncome = 0
 	for _, worker in ipairs(data.workers) do
-		local income = Config.INCOME_PER_TIER[worker.tier] or 0
-		totalIncome = totalIncome + income
+		local incomePerMinute = Config.INCOME_PER_TIER[worker.tier] or 0
+		local incomePerTick = incomePerMinute * (Config.INCOME_TICK_SECONDS / 60)
+		totalIncome = totalIncome + incomePerTick
 	end
 
 	data.currency = data.currency + totalIncome

@@ -87,7 +87,7 @@ Config.FLOOR_UPGRADE_COST_SCALE = 3.0
 -- PASSIVE INCOME ("Viewers")
 --------------------------------------------------------------------------------
 -- Seconds between each income tick
-Config.INCOME_TICK_SECONDS = 60
+Config.INCOME_TICK_SECONDS = 1
 
 function Config.getCumulativeMergeCost(tier: number): number
 	return Config.HATCH_COST * (2 ^ tier)

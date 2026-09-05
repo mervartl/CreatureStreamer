@@ -9,6 +9,7 @@ local Players = game:GetService("Players")
 
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local SyncPlayerDataRemote = Remotes:WaitForChild("SyncPlayerData")
+local SyncCurrencyRemote = Remotes:WaitForChild("SyncCurrency")
 
 -- Shared modules (available client-side)
 local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
@@ -40,6 +41,16 @@ SyncPlayerDataRemote.OnClientEvent:Connect(function(newData)
 	ClientState.data = newData
 	for _, callback in ipairs(ClientState.onDataChanged) do
 		task.spawn(callback, newData)
+	end
+end)
+
+-- Listen for delta currency updates from server
+SyncCurrencyRemote.OnClientEvent:Connect(function(newCurrency)
+	if ClientState.data then
+		ClientState.data.currency = newCurrency
+		for _, callback in ipairs(ClientState.onDataChanged) do
+			task.spawn(callback, ClientState.data)
+		end
 	end
 end)
 
@@ -78,6 +89,14 @@ getStateFunc.Parent = stateFolder
 SyncPlayerDataRemote.OnClientEvent:Connect(function(newData)
 	ClientState.data = newData
 	dataChangedEvent:Fire(newData)
+end)
+
+-- Forward SyncCurrency to the BindableEvent as well
+SyncCurrencyRemote.OnClientEvent:Connect(function(newCurrency)
+	if ClientState.data then
+		ClientState.data.currency = newCurrency
+		dataChangedEvent:Fire(ClientState.data)
+	end
 end)
 
 -- Store Remotes reference for easy access by UI scripts

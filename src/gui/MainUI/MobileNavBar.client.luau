@@ -20,10 +20,10 @@ local ScreenManager = require(script.Parent:WaitForChild("ScreenManager"))
 -- Colors
 --------------------------------------------------------------------------------
 
-local COLOR_BG         = Color3.fromRGB(18, 18, 28)
-local COLOR_BTN_IDLE   = Color3.fromRGB(32, 32, 48)
+local COLOR_BG = Color3.fromRGB(18, 18, 28)
+local COLOR_BTN_IDLE = Color3.fromRGB(32, 32, 48)
 local COLOR_BTN_ACTIVE = Color3.fromRGB(50, 50, 72)
-local COLOR_TEXT_IDLE  = Color3.fromRGB(160, 160, 185)
+local COLOR_TEXT_IDLE = Color3.fromRGB(160, 160, 185)
 local COLOR_TEXT_ACTIVE = Color3.fromRGB(235, 235, 255)
 
 local DOT_EGG = Color3.fromRGB(255, 220, 80)
@@ -43,7 +43,7 @@ navBar.BackgroundTransparency = 1 -- fully transparent, just floating buttons
 navBar.BorderSizePixel = 0
 navBar.ZIndex = 50
 navBar.ClipsDescendants = false
-navBar.Visible = false  -- hidden by default, shown on proximity
+navBar.Visible = false -- hidden by default, shown on proximity
 navBar.Parent = mainUI
 
 local uiScale = Instance.new("UIScale")
@@ -98,8 +98,8 @@ local function makeNavBtn(name, icon, label, dotColor)
 	return btn
 end
 
-local eggBtn = makeNavBtn("EggNavBtn", "🥚", "Vajíčka", DOT_EGG)
-local jobBtn = makeNavBtn("JobNavBtn", "🎙️", "Jobs",    DOT_JOB)
+local eggBtn = makeNavBtn("EggNavBtn", "🥚", "Eggs", DOT_EGG)
+local jobBtn = makeNavBtn("JobNavBtn", "🎙️", "Jobs", DOT_JOB)
 
 --------------------------------------------------------------------------------
 -- Panel state helpers
@@ -118,7 +118,9 @@ local function setPanelActive(btn, frameName, active)
 		frame.Visible = active
 	end
 	local dot = btn:FindFirstChild("ActiveDot")
-	if dot then dot.Visible = active end
+	if dot then
+		dot.Visible = active
+	end
 	btn.BackgroundColor3 = active and COLOR_BTN_ACTIVE or COLOR_BTN_IDLE
 	btn.TextColor3 = active and COLOR_TEXT_ACTIVE or COLOR_TEXT_IDLE
 end
@@ -183,6 +185,6 @@ ScreenManager.ScreenChanged:Connect(applyScreen)
 if ScreenManager.CurrentClass then
 	applyScreen({
 		deviceClass = ScreenManager.CurrentClass,
-		scale = ScreenManager.CurrentScale
+		scale = ScreenManager.CurrentScale,
 	})
 end

@@ -24,6 +24,10 @@ local RequestSyncRemote = Instance.new("RemoteFunction")
 RequestSyncRemote.Name = "RequestSync"
 RequestSyncRemote.Parent = Remotes
 
+local SyncCurrencyRemote = Instance.new("RemoteEvent")
+SyncCurrencyRemote.Name = "SyncCurrency"
+SyncCurrencyRemote.Parent = Remotes
+
 -- System modules
 local DataStoreManager = require(script.Systems.DataStoreManager)
 local HatchSystem = require(script.Systems.HatchSystem)
@@ -198,7 +202,10 @@ task.spawn(function()
 		for _, player in ipairs(Players:GetPlayers()) do
 			local income = CurrencySystem.tickPassiveIncome(player)
 			if income > 0 then
-				syncToClient(player)
+				local clientData = DataStoreManager.getClientData(player)
+				if clientData then
+					SyncCurrencyRemote:FireClient(player, clientData.currency)
+				end
 			end
 		end
 	end
