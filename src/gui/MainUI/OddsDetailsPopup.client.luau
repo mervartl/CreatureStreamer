@@ -244,8 +244,9 @@ end
 -- Update when data changes or popup becomes visible
 local cachedData = nil
 
-dataChangedEvent.Event:Connect(function(data)
+dataChangedEvent.Event:Connect(function(data, isCurrencyOnly)
 	cachedData = data
+	if isCurrencyOnly then return end
 	if frame.Visible then
 		renderOdds(data)
 	end

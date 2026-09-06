@@ -95,7 +95,7 @@ end)
 SyncCurrencyRemote.OnClientEvent:Connect(function(newCurrency)
 	if ClientState.data then
 		ClientState.data.currency = newCurrency
-		dataChangedEvent:Fire(ClientState.data)
+		dataChangedEvent:Fire(ClientState.data, true) -- true = isCurrencyOnly
 	end
 end)
 

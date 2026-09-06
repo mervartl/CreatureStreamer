@@ -220,7 +220,8 @@ local function updateDisplay(data)
 	end
 end
 
-dataChangedEvent.Event:Connect(function(data)
+dataChangedEvent.Event:Connect(function(data, isCurrencyOnly)
+	if isCurrencyOnly then return end
 	updateDisplay(data)
 end)
 
